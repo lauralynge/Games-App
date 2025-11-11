@@ -24,27 +24,29 @@
         <select id="sort-select">
           <option value="none">Ingen sortering</option>
           <option value="title">Sortér: Titel (A-Å)</option>
-          <option value="year">Sortér: År (nyeste først)</option>
+          <option value="playtime">Sortér: Spilletid (kortest først)</option>
           <option value="rating">Sortér: Rating (højeste først)</option>
         </select>
 
-        <!-- År range filter - TILFØJ KUN DENNE -->
-        <div class="year-filter">
-          <label> År:</label>
+        <!-- Playtime range filter -->
+        <div class="playtime-filter">
+          <label>Spilletid (min):</label>
           <input
             type="number"
-            id="year-from"
-            placeholder="Fra år"
-            min="1900"
-            max="2024"
+            id="playtime-from"
+            placeholder="Fra min"
+            min="0"
+            max="300"
+            step="15"
           />
           <span>til</span>
           <input
             type="number"
-            id="year-to"
-            placeholder="Til år"
-            min="1900"
-            max="2024"
+            id="playtime-to"
+            placeholder="Til min"
+            min="0"
+            max="300"
+            step="15"
           />
         </div>
 
@@ -56,8 +58,8 @@
             id="rating-from"
             placeholder="Fra"
             min="0"
-            max="10"
-            step="0.1"
+            max="5"
+            step="1"
           />
           <span>til</span>
           <input
@@ -65,8 +67,8 @@
             id="rating-to"
             placeholder="Til"
             min="0"
-            max="10"
-            step="0.1"
+            max="5"
+            step="1"
           />
         </div>
         <!-- Clear filters knap - TILFØJ TIL SIDST -->
@@ -84,24 +86,16 @@
       <p>© Gruppe 2: Freia, Josefine, Anton og Laura</p>
     </footer>
 
-    <!-- Modal Dialog -->
+ <!-- Game Modal -->
     <dialog id="game-dialog">
-      <div id="dialog-content">
-        <!-- Game details will be inserted here -->
-      </div>
-      <button onclick="document.querySelector('#game-dialog').close()">Luk</button>
-    </dialog>
-
-
-    <!-- Movie Detail Modal -->
-    <dialog id="movie-dialog">
       <form method="dialog">
         <button id="close-dialog" aria-label="Close">✕</button>
         <div id="dialog-content">
-          <!-- Movie details will be injected here via JavaScript -->
+          <!-- Game details will be injected here via JavaScript -->
         </div>
       </form>
     </dialog>
+
 
     <script src="js/app.js"></script>
   </body>

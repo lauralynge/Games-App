@@ -4,8 +4,7 @@
 document.addEventListener("DOMContentLoaded", initApp);
 
 // ===== GLOBALE VARIABLER =====
-let allGames = []; // Hvorfor har vi brug for den her variabel?
-// Hvad kaldes den i Movie App?
+let allGames = []; 
 
 // ===== INITIALISERING =====
 function initApp() {
@@ -21,9 +20,9 @@ function initApp() {
     .querySelector("#sort-select")
     .addEventListener("change", filterGames);
 
-  // NYE: Kun år felter
-  document.querySelector("#year-from").addEventListener("input", filterGames);
-  document.querySelector("#year-to").addEventListener("input", filterGames);
+  // NYE: Kun playtime felter
+  document.querySelector("#playtime-from").addEventListener("input", filterGames);
+  document.querySelector("#playtime-to").addEventListener("input", filterGames);
 
   // Rating field event listeners // Tilføj EFTER år listeners
   document.querySelector("#rating-from").addEventListener("input", filterGames);
@@ -72,7 +71,7 @@ function displayGame(game) {
            class="game-poster" />
       <div class="game-info">
         <h3>${game.title} <span class="game-playtime">(${game.playtime})</span></h3>
-        <p class="game-genre">${game.genre.join(", ")}</p>   
+        <p class="game-genre">${game.genre}</p>   
         <p class="game-rating">⭐ ${game.rating}</p>
         <p class="game-players">${game.players.min}-${game.players.max} spillere</p>
         <p class="game-director"><strong>Difficulty:</strong> ${game.difficulty}</p>
@@ -111,9 +110,7 @@ function populateGenreDropdown() {
   const genres = new Set();
 
   for (const game of allGames) {
-    for (const genre of game.genre) {
-      genres.add(genre);
-    }
+    genres.add(game.genre);
   }
 
   // Fjern gamle options undtagen 'Alle genrer'
@@ -159,17 +156,24 @@ function filterGames() {
     });
   }
 
-  // TRIN 2: Filter på genre
+  // TRIN 2: Filter på genre (fra dropdown)
   if (genreValue !== "all") {
     filteredGames = filteredGames.filter((game) => {
       return game.genre.includes(genreValue);
     });
   }
 
-  // TRIN 3: År filter
-  filteredGames = filteredGames.filter((game) => {
-    return game.year >= yearFrom && game.year <= yearTo;
-  });
+
+  
+  
+  // TRIN 3: Playtime filter
+  if (playtimeFrom > 0 || playtimeTo < 9999) {
+    filteredGames = filteredGames.filter((game) => {
+      // Antag at game.playtime er i minutter (f.eks. "30-60" eller "45")
+      const playtime = parseInt(game.playtime); // Tag første nummer
+      return playtime >= playtimeFrom && playtime <= playtimeTo;
+    });
+  }
 
   // TRIN 4: Rating filter
   filteredGames = filteredGames.filter((game) => {
@@ -179,8 +183,8 @@ function filterGames() {
   // TRIN 5: Sortering
   if (sortValue === "title") {
     filteredGames.sort((a, b) => a.title.localeCompare(b.title));
-  } else if (sortValue === "year") {
-    filteredGames.sort((a, b) => b.year - a.year);
+  } else if (sortValue === "playtime") {
+    filteredGames.sort((a, b) => parseInt(a.playtime) - parseInt(b.playtime)); // Kortest først
   } else if (sortValue === "rating") {
     filteredGames.sort((a, b) => b.rating - a.rating);
   }
@@ -188,6 +192,7 @@ function filterGames() {
   console.log(`✅ Viser ${filteredGames.length} games`);
   displayGames(filteredGames);
 }
+
 
 
 
@@ -204,8 +209,8 @@ function clearAllFilters() {
   document.querySelector("#sort-select").value = "none";
 
   // Ryd de nye range felter
-  document.querySelector("#year-from").value = "";
-  document.querySelector("#year-to").value = "";
+  document.querySelector("#playtime-from").value = "";
+  document.querySelector("#playtime-to").value = "";
   document.querySelector("#rating-from").value = "";
   document.querySelector("#rating-to").value = "";
 
@@ -228,7 +233,7 @@ function showGameModal(game) {
       alt="Poster of ${game.title}" class="game-poster" />
    <div class="game-info">
       <h3>${game.title} <span class="game-playtime">(${game.playtime})</span></h3>
-      <p class="game-genre">${game.genre.join(", ")}</p>   
+      <p class="game-genre">${game.genre}</p>   
       <p class="game-rating">⭐ ${game.rating}</p>
       <p class="game-players">${game.players.min}-${game.players.max} spillere</p>
       <p class="game-director"><strong>Difficulty:</strong> ${game.difficulty}</p>
