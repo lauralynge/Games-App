@@ -52,7 +52,7 @@ async function getGames() {
 
 // ===== VISNING =====  // Vis alle games - loop gennem og kald displayGame() for hver game
 function displayGames(games) {
-  console.log(`� Viser ${games.length} games`);
+  console.log(` Viser ${games.length} games`);
   // Nulstil #game-list HTML'en
   document.querySelector("#game-list").innerHTML = "";
   // Gennemløb alle games og kør displayGame-funktionen for hver game
@@ -66,16 +66,14 @@ function displayGame(game) {
   const gameList = document.querySelector("#game-list");
   const gameHTML = `
     <article class="game-card">
-      <img src="${game.image}" 
-           alt="Poster of ${game.title}" 
-           class="game-poster" />
+        <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster" />
+        <img src="Images/Favorit tomt ikon.png" alt="Favorit" class="favorite-icon" onclick="toggleFavorite(event, '${game.title}')">
       <div class="game-info">
-        <h3>${game.title} <span class="game-playtime">(${game.playtime})</span></h3>
-        <p class="game-genre">${game.genre}</p>   
-        <p class="game-rating">⭐ ${game.rating}</p>
-        <p class="game-players">${game.players.min}-${game.players.max} spillere</p>
-        <p class="game-director"><strong>Difficulty:</strong> ${game.difficulty}</p>
-        <p class="game-age"><strong>Age:</strong> ${game.age}+</p>
+        <h3>${game.title} <span class="game-rating"><img src="Images/Stjerne ikon.png" alt="Rating" class="rating-icon"> ${game.rating}</span></h3>
+        <p class="game-shelf">Hylde ${game.shelf}</p>
+        <p class="game-players"><img src="Images/Spillere ikon.png" alt="Players" class="players-icon"> ${game.players.min}-${game.players.max} spillere</p>
+        <p class="game-playtime"><img src="Images/Tid ikon.png" alt="Playtime" class="playtime-icon"> ${game.playtime} minutter </p>
+        <p class="game-genre"><img src="Images/Kategori ikon.png" alt="Genre" class="genre-icon"> ${game.genre}</p>  
       </div>
     </article>
   `;
@@ -219,6 +217,21 @@ function clearAllFilters() {
 }
 
 // ===== MODAL =====
+
+// Håndter favorit klik
+function toggleFavorite(event, gameTitle) {
+  event.stopPropagation(); // Forhindrer at game card også bliver klikket
+  const favoriteIcon = event.target;
+  
+  // Toggle mellem tomt og fyldt hjerte
+  if (favoriteIcon.src.includes("Favorit tomt ikon.png")) {
+    favoriteIcon.src = "Images/Favorit fyldt ikon.png";
+    console.log(`❤️ Tilføjet til favoritter: ${gameTitle}`);
+  } else {
+    favoriteIcon.src = "Images/Favorit tomt ikon.png";
+    console.log(`💔 Fjernet fra favoritter: ${gameTitle}`);
+  }
+}
 
   // Vis (alle) game detaljer i modal
   // Hvilke felter har et game? (Se JSON strukturen)

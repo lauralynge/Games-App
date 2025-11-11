@@ -9,13 +9,14 @@
   --secondary-light: #3c4043;
 
   /* Text - Dark Mode Colors */
-  --text: #880201;
+  --text: #1E1B1B;
   --text-light: #1E1B1B;
 
   /* Backgrounds - Dark Mode */
   --bg: #FAFAFA;
   --bg-card: #F1F1F1;
 
+  /* Semantic */
   /* Semantic */
   --success: #34a853;
   --warning: #fbc02d;
@@ -86,10 +87,10 @@ body {
 span {
     color: var(--text-light);
 }
-
 /* =====================
    LAYOUT (main container)
    ===================== */
+
 main {
   max-width: min(1400px, 95vw);
   margin: 0 auto;
@@ -267,7 +268,9 @@ header {
   border-bottom: 1px solid rgba(172, 198, 201, 0.2);
   color: var(--text);
   padding: 1rem 0;
-  text-align: center;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
   position: fixed;
   top: 0;
   left: 0;
@@ -277,11 +280,11 @@ header {
   box-shadow: var(--shadow);
 }
 
-header h1 {
-  font-size: clamp(1.5rem, 4vw, 2.5rem);
-  font-weight: 700;
-  letter-spacing: -0.025em;
+.logo {
+  height: 80px;
+  margin-left: 1rem;
 }
+
 
 footer {
   background: var(--primary);
@@ -305,7 +308,7 @@ footer {
   overflow: hidden;
   transition: var(--transition);
   cursor: pointer;
-  border: 1px solid #3c4043;
+
 }
 
 .game-card:hover {
@@ -322,12 +325,7 @@ footer {
 .game-poster {
   width: 100%;
   height: 400px;
-  object-fit: cover;
-  background: linear-gradient(
-    135deg,
-    var(--secondary-light),
-    var(--primary-light)
-  );
+  object-fit: contain;
   transition: var(--transition);
 }
 
@@ -350,15 +348,6 @@ footer {
   margin-bottom: 0.5rem;
 }
 
-.game-year {
-  color: var(--text-light);
-  font-size: 0.875rem;
-  background: var(--secondary-light);
-  padding: 0.25rem 0.5rem;
-  border-radius: 0.5rem;
-  white-space: nowrap;
-}
-
 .game-genre {
   color: var(--text-light);
   font-size: 0.9rem;
@@ -366,7 +355,7 @@ footer {
 }
 
 .game-rating {
-  color: var(--warning);
+  color: var(--text);
   font-weight: 600;
   margin-bottom: 0.5rem;
   display: flex;
@@ -374,18 +363,71 @@ footer {
   gap: 0.25rem;
 }
 
-.game-rating::before {
-  content: "â­";
+.game-shelf {
+    color: var(--text-light); 
+    border: 2px solid var(--primary); /* Tykkelse, tekst og farve */
+    padding: 5px 20px; /* Afstand mellem tekst og kant */
+    display: inline-block; /* Så kanten passer præcist til teksten */
+    border-radius: 25px;
+    margin-bottom: 20px;
 }
 
-.game-director {
+/* Icon styling */
+.rating-icon{
+width: 25px;
+}
+
+.players-icon,
+.playtime-icon,
+.genre-icon {
+  width: 25px;
+  margin-right: 10px;
+  vertical-align: left;
+}
+
+/* Align game info items with icons */
+.game-players,
+.game-playtime,
+.game-genre {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.5rem;
   color: var(--text-light);
-  font-size: 0.875rem;
+  font-size: 0.9rem;
 }
 
-.game-director strong {
-  color: var(--text);
+
+/* Favorite icon positioning */
+.favorite-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  padding: 6px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  /* Touch-friendly minimum size */
+  min-width: 44px;
+  min-height: 44px;
 }
+
+.favorite-icon:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Active state for mobile touch feedback */
+.favorite-icon:active {
+  transform: scale(0.95);
+  background: rgba(240, 240, 240, 1);
+}
+
 
 /* =====================
    GAME DIALOG
