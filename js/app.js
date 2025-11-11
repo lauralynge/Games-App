@@ -261,51 +261,323 @@ function showGameModal(game) {
 
 // ==== KARUSSEL ====
 
-// Populate karrussel med top-rated games
+let currentCarouselIndex = 0;
+let carouselGames = [];
+let startX = 0;
+let currentX = 0;
+let isDragging = false;
+
+// Populate karrussel med top-rated games (infinite loop)
 function populateCarousel() {
-  // Sortér games efter rating og tag de 8 bedste
-  const topRatedGames = allGames
+  // Sortér games efter rating og tag de 10 bedste
+  carouselGames = allGames
     .sort((a, b) => b.rating - a.rating)
     .slice(0, 10);
   
   // Ryd karrussel
   document.querySelector("#game-carousel").innerHTML = "";
   
-  // Tilføj games til karrussel
-  for (const game of topRatedGames) {
-    displayGameCarousel(game);
-  }
+  // Tilføj games til karrussel med duplicates for infinite effect
+  createInfiniteCarousel();
+  
+  // Start i midten af den udvidede array
+  currentCarouselIndex = carouselGames.length;
   
   // Tilføj click events til karrussel cards
   addCarouselClickEvents();
+  
+  // Tilføj swipe events
+  addSwipeEvents();
+  
+  // Sæt initial fokus
+  updateCarouselPosition();
 }
 
-// Tilføj click events til karrussel cards
-function addCarouselClickEvents() {
-  const carouselCards = document.querySelectorAll("#game-carousel .game-card");
-  carouselCards.forEach((card, index) => {
-    card.addEventListener("click", function() {
-      const topRatedGames = allGames
-        .sort((a, b) => b.rating - a.rating)
-        .slice(0, 10);
-      const game = topRatedGames[index];
-      console.log(`🎬 Klik på karrussel: "${game.title}"`);
-      showGameModal(game);
-    });
+// Opret uendelig karrussel med duplicate kort
+function createInfiniteCarousel() {
+  const carousel = document.querySelector("#game-carousel");
+  
+  // Opret extended array: [copies, original, copies]
+  const extendedGames = [
+    ...carouselGames, // Copies til venstre
+    ...carouselGames, // Original games
+    ...carouselGames  // Copies til højre
+  ];
+  
+  // Tilføj alle kort til DOM
+  for (let i = 0; i < extendedGames.length; i++) {
+    const game = extendedGames[i];
+    const gameHTML = `
+      <article class="game-card" data-index="${i}" data-original-index="${i % carouselGames.length}">
+          <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster"/>
+      <div class="game-title">
+          <h3>${game.title}</h3>
+      </div>
+      </article>
+    `;
+    carousel.insertAdjacentHTML("beforeend", gameHTML);
+  }
+}
+
+// Gå til specifik slide
+function goToSlide(index) {
+  currentCarouselIndex = index;
+  updateCarouselPosition();
+}
+
+// Navigation state for at forhindre spam-clicks
+let isNavigating = false;
+
+// Næste slide (fixed infinite)
+function nextSlide() {
+  // Forhindre spam-swipes
+  if (isNavigating) return;
+  isNavigating = true;
+  
+  currentCarouselIndex++;
+  
+  updateCarouselPosition();
+  
+  // Seamless reset når vi når enden af det andet sæt
+  if (currentCarouselIndex >= carouselGames.length * 2) {
+    setTimeout(() => {
+      const carousel = document.querySelector("#game-carousel");
+      carousel.style.transition = 'none';
+      currentCarouselIndex = carouselGames.length;
+      updateCarouselPosition();
+      setTimeout(() => {
+        carousel.style.transition = 'transform 0.5s ease';
+        isNavigating = false; // Tillad næste navigation
+      }, 10);
+    }, 500);
+  } else {
+    // Normal navigation - tillad næste swipe efter transition
+    setTimeout(() => {
+      isNavigating = false;
+    }, 300);
+  }
+}
+
+// Forrige slide (fixed infinite)
+function prevSlide() {
+  // Forhindre spam-swipes
+  if (isNavigating) return;
+  isNavigating = true;
+  
+  currentCarouselIndex--;
+  
+  updateCarouselPosition();
+  
+  // Seamless reset når vi når starten af det første sæt
+  if (currentCarouselIndex < carouselGames.length) {
+    setTimeout(() => {
+      const carousel = document.querySelector("#game-carousel");
+      carousel.style.transition = 'none';
+      currentCarouselIndex = carouselGames.length * 2 - 1;
+      updateCarouselPosition();
+      setTimeout(() => {
+        carousel.style.transition = 'transform 0.5s ease';
+        isNavigating = false; // Tillad næste navigation
+      }, 10);
+    }, 500);
+  } else {
+    // Normal navigation - tillad næste swipe efter transition
+    setTimeout(() => {
+      isNavigating = false;
+    }, 300);
+  }
+}
+
+// Opdater karrussel position og fokus (symmetrisk layout)
+function updateCarouselPosition() {
+  const carousel = document.querySelector("#game-carousel");
+  const cards = document.querySelectorAll("#game-carousel .game-card");
+  
+  // Præcise målinger for symmetrisk layout
+  const cardWidth = 180; // kort bredde (normal størrelse)
+  const cardGap = 24; // 1.5rem gap mellem kort
+  const totalCardWidth = cardWidth + cardGap;
+  
+  const containerWidth = carousel.parentElement.offsetWidth;
+  
+  // Perfekt centrering for symmetrisk visning
+  const centerPosition = containerWidth / 2 - cardWidth / 2;
+  let offset = centerPosition - (currentCarouselIndex * totalCardWidth);
+  
+  carousel.style.transform = `translateX(${offset}px)`;
+  
+  // Opdater fokus classes for infinite carousel
+  cards.forEach((card, index) => {
+    card.classList.remove("center", "adjacent");
+    
+    // Find hvilket kort vi faktisk fokuserer på (modulo operation for infinite)
+    const actualIndex = currentCarouselIndex % carouselGames.length;
+    const cardIndex = index % carouselGames.length;
+    
+    if (cardIndex === actualIndex) {
+      card.classList.add("center");
+    } else if (
+      cardIndex === (actualIndex - 1 + carouselGames.length) % carouselGames.length ||
+      cardIndex === (actualIndex + 1) % carouselGames.length
+    ) {
+      card.classList.add("adjacent");
+    }
   });
 }
 
-// Vis ÉT game card til karrussel
-function displayGameCarousel(game) {
-  const gameCarousel = document.querySelector("#game-carousel");
-  const gameHTML = `
-    <article class="game-card">
-        <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster"/>
-    <div class="game-title">
-        <h3>${game.title}</h3>
-    </div>
-    </article>
-  `;
+// Tilføj swipe events
+function addSwipeEvents() {
+  const carousel = document.querySelector("#game-carousel");
+  const container = document.querySelector(".carousel-container");
+  
+  // Touch events
+  container.addEventListener("touchstart", handleTouchStart, { passive: false });
+  container.addEventListener("touchmove", handleTouchMove, { passive: false });
+  container.addEventListener("touchend", handleTouchEnd);
+  
+  // Mouse events for desktop
+  container.addEventListener("mousedown", handleMouseStart);
+  container.addEventListener("mousemove", handleMouseMove);
+  container.addEventListener("mouseup", handleMouseEnd);
+  container.addEventListener("mouseleave", handleMouseEnd);
+}
 
-  gameCarousel.insertAdjacentHTML("beforeend", gameHTML);
+function handleTouchStart(e) {
+  startX = e.touches[0].clientX;
+  isDragging = true;
+  document.querySelector("#game-carousel").classList.add("dragging");
+}
+
+function handleTouchMove(e) {
+  if (!isDragging) return;
+  e.preventDefault();
+  currentX = e.touches[0].clientX;
+  
+  // Begræns swipe feedback til maksimalt ét kort
+  const carousel = document.querySelector("#game-carousel");
+  const diffX = startX - currentX;
+  
+  // Samme centrering som updateCarouselPosition
+  const cardWidth = 180;
+  const cardGap = 24;
+  const totalCardWidth = cardWidth + cardGap;
+  const containerWidth = carousel.parentElement.offsetWidth;
+  const centerPosition = containerWidth / 2 - cardWidth / 2;
+  
+  let baseOffset = centerPosition - (currentCarouselIndex * totalCardWidth);
+  
+  // Begræns drag til maksimalt 80% af et kort i hver retning
+  const maxDrag = totalCardWidth * 0.8;
+  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
+  
+  carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
+}
+
+function handleTouchEnd(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  
+  const carousel = document.querySelector("#game-carousel");
+  carousel.classList.remove("dragging");
+  
+  const diffX = startX - currentX;
+  const threshold = 50; // Øget threshold for mere præcis control
+  
+  // Kun tillad ét kort ad gangen - ingen multi-swipes
+  if (Math.abs(diffX) > threshold && !isNavigating) {
+    if (diffX > 0) {
+      // Swipe til venstre = næste kort (kun ét)
+      nextSlide();
+    } else {
+      // Swipe til højre = forrige kort (kun ét)
+      prevSlide();
+    }
+  } else {
+    // Snap tilbage til current position hvis ikke nok swipe
+    updateCarouselPosition();
+  }
+  
+  // Reset touch tracking
+  startX = 0;
+  currentX = 0;
+}
+
+function handleMouseStart(e) {
+  startX = e.clientX;
+  isDragging = true;
+  document.querySelector("#game-carousel").classList.add("dragging");
+  e.preventDefault();
+}
+
+function handleMouseMove(e) {
+  if (!isDragging) return;
+  currentX = e.clientX;
+  
+  // Begræns mouse feedback samme som touch
+  const carousel = document.querySelector("#game-carousel");
+  const diffX = startX - currentX;
+  
+  const cardWidth = 180;
+  const cardGap = 24;
+  const totalCardWidth = cardWidth + cardGap;
+  const containerWidth = carousel.parentElement.offsetWidth;
+  const centerPosition = containerWidth / 2 - cardWidth / 2;
+  
+  let baseOffset = centerPosition - (currentCarouselIndex * totalCardWidth);
+  
+  // Begræns drag til maksimalt 80% af et kort i hver retning
+  const maxDrag = totalCardWidth * 0.8;
+  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
+  
+  carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
+}
+
+function handleMouseEnd(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  
+  const carousel = document.querySelector("#game-carousel");
+  carousel.classList.remove("dragging");
+  
+  const diffX = startX - currentX;
+  const threshold = 50; // Samme threshold som touch
+  
+  // Kun tillad ét kort ad gangen - ingen multi-drags
+  if (Math.abs(diffX) > threshold && !isNavigating) {
+    if (diffX > 0) {
+      // Drag til venstre = næste kort (kun ét)
+      nextSlide();
+    } else {
+      // Drag til højre = forrige kort (kun ét)
+      prevSlide();
+    }
+  } else {
+    // Snap tilbage til current position hvis ikke nok drag
+    updateCarouselPosition();
+  }
+  
+  // Reset mouse tracking
+  startX = 0;
+  currentX = 0;
+}
+
+// Tilføj click events til karrussel cards (infinite)
+function addCarouselClickEvents() {
+  const carouselCards = document.querySelectorAll("#game-carousel .game-card");
+  carouselCards.forEach((card, index) => {
+    card.addEventListener("click", function(e) {
+      if (isDragging) return; // Ignorer click hvis vi swiper
+      
+      if (index === currentCarouselIndex) {
+        // Hvis center kort klikkes, åbn modal
+        const originalIndex = parseInt(card.dataset.originalIndex);
+        const game = carouselGames[originalIndex];
+        console.log(`🎬 Klik på karrussel: "${game.title}"`);
+        showGameModal(game);
+      } else {
+        // Hvis ikke-center kort klikkes, gå til det kort
+        goToSlide(index);
+      }
+    });
+  });
 }
