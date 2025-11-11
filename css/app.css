@@ -658,3 +658,64 @@ dialog#game-dialog::backdrop {
     width: 100px;
   }
 }
+
+/* =====================
+   KARRUSSEL
+   ===================== */
+#game-carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  gap: 1rem;
+  padding: 1rem 0;
+  margin: 2rem 0;
+  scrollbar-width: thin;
+  scrollbar-color: var(--secondary) transparent;
+}
+
+#game-carousel::-webkit-scrollbar {
+  height: 8px;
+}
+
+#game-carousel::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+#game-carousel::-webkit-scrollbar-thumb {
+  background: var(--secondary);
+  border-radius: 4px;
+}
+
+#game-carousel .game-card {
+  min-width: 200px;
+  max-width: 200px;
+  flex-shrink: 0;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: var(--transition);
+  cursor: pointer;
+  box-shadow: var(--shadow);
+}
+
+#game-carousel .game-card:hover {
+  transform: translateY(-5px);
+  box-shadow: var(--shadow-lg);
+}
+
+#game-carousel .game-poster {
+  width: 100%;
+  height: 250px;
+  object-fit: cover;
+}
+
+#game-carousel .game-title {
+  padding: 1rem;
+}
+
+#game-carousel .game-title h3 {
+  font-size: 0.9rem;
+  color: var(--text);
+  margin: 0;
+  text-align: center;
+}

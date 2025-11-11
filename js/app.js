@@ -48,6 +48,7 @@ async function getGames() {
   console.log(`📊 JSON data modtaget: ${allGames.length} games`);
   populateGenreDropdown(); // Udfyld dropdown med genres <-----
   displayGames(allGames);
+  populateCarousel(); // Tilføj top-rated games til karrussel
 }
 
 // ===== VISNING =====  // Vis alle games - loop gennem og kald displayGame() for hver game
@@ -61,7 +62,7 @@ function displayGames(games) {
   }
 }
 
-// Vis ÉT game card
+// Vis ÉT game card til game list
 function displayGame(game) {
   const gameList = document.querySelector("#game-list");
   const gameHTML = `
@@ -256,4 +257,55 @@ function showGameModal(game) {
 
   // Åbn modalen
   document.querySelector("#game-dialog").showModal();
+}
+
+// ==== KARUSSEL ====
+
+// Populate karrussel med top-rated games
+function populateCarousel() {
+  // Sortér games efter rating og tag de 8 bedste
+  const topRatedGames = allGames
+    .sort((a, b) => b.rating - a.rating)
+    .slice(0, 10);
+  
+  // Ryd karrussel
+  document.querySelector("#game-carousel").innerHTML = "";
+  
+  // Tilføj games til karrussel
+  for (const game of topRatedGames) {
+    displayGameCarousel(game);
+  }
+  
+  // Tilføj click events til karrussel cards
+  addCarouselClickEvents();
+}
+
+// Tilføj click events til karrussel cards
+function addCarouselClickEvents() {
+  const carouselCards = document.querySelectorAll("#game-carousel .game-card");
+  carouselCards.forEach((card, index) => {
+    card.addEventListener("click", function() {
+      const topRatedGames = allGames
+        .sort((a, b) => b.rating - a.rating)
+        .slice(0, 10);
+      const game = topRatedGames[index];
+      console.log(`🎬 Klik på karrussel: "${game.title}"`);
+      showGameModal(game);
+    });
+  });
+}
+
+// Vis ÉT game card til karrussel
+function displayGameCarousel(game) {
+  const gameCarousel = document.querySelector("#game-carousel");
+  const gameHTML = `
+    <article class="game-card">
+        <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster"/>
+    <div class="game-title">
+        <h3>${game.title}</h3>
+    </div>
+    </article>
+  `;
+
+  gameCarousel.insertAdjacentHTML("beforeend", gameHTML);
 }
