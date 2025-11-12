@@ -30,6 +30,9 @@ function initApp() {
   document.querySelector("#header-rating-from").addEventListener("input", filterGames);
   document.querySelector("#header-rating-to").addEventListener("input", filterGames);
 
+  // Spillere felt
+  document.querySelector("#header-players-from").addEventListener("input", filterGames);
+
   // Location dropdown (nu udenfor filter panel)
   document
     .querySelector("#location-select")
@@ -105,6 +108,7 @@ function initFilterPanel() {
     if (document.querySelector("#header-playtime-to").value) activeFilters++;
     if (document.querySelector("#header-rating-from").value) activeFilters++;
     if (document.querySelector("#header-rating-to").value) activeFilters++;
+    if (document.querySelector("#header-players-from").value) activeFilters++;
     
     if (activeFilters > 0) {
       filterBadge.style.display = "flex";
@@ -123,7 +127,8 @@ function initFilterPanel() {
     "#header-playtime-from",
     "#header-playtime-to", 
     "#header-rating-from",
-    "#header-rating-to"
+    "#header-rating-to",
+    "#header-players-from"
   ];
 
   filterInputs.forEach(selector => {
@@ -268,6 +273,9 @@ function filterGames() {
   const ratingFrom = Number(document.querySelector("#header-rating-from").value) || 0;
   const ratingTo = Number(document.querySelector("#header-rating-to").value) || 10;
 
+  // Antal spillere variable - fra header
+  const playersFrom = Number(document.querySelector("#header-players-from").value) || 2;
+
   console.log("🔄 Filtrerer games...");
 
   // Start med alle games
@@ -308,11 +316,19 @@ function filterGames() {
     return game.rating >= ratingFrom && game.rating <= ratingTo;
   });
 
-  // TRIN 6: Sortering
+  // TRIN 6: Antal spillere filter
+  if (playersFrom > 2) {
+    filteredGames = filteredGames.filter((game) => {
+      const playerCount = game.players.min; // Antal spillere
+      return playerCount >= playersFrom;
+    });
+  }
+
+  // TRIN 7: Sortering
   if (sortValue === "title") {
-    filteredGames.sort((a, b) => a.title.localeCompare(b.title));
-  } else if (sortValue === "playtime") {
-    filteredGames.sort((a, b) => parseInt(a.playtime) - parseInt(b.playtime)); // Kortest først
+    filteredGames.sort((a, b) => a.title.localeCompare(b.title)); // A-Å
+  } else if (sortValue === "title2") {
+    filteredGames.sort((a, b) => b.title.localeCompare(a.title)); // Å-A
   } else if (sortValue === "rating") {
     filteredGames.sort((a, b) => b.rating - a.rating);
   }
@@ -320,12 +336,6 @@ function filterGames() {
   console.log(`✅ Viser ${filteredGames.length} games`);
   displayGames(filteredGames);
 }
-
-
-
-
-
-
 
 // Ryd alle filtre – funktion
 function clearAllFilters() {
@@ -342,6 +352,7 @@ function clearAllFilters() {
   document.querySelector("#header-playtime-to").value = "";
   document.querySelector("#header-rating-from").value = "";
   document.querySelector("#header-rating-to").value = "";
+  document.querySelector("#header-players-from").value = "";
 
   // Opdater filter badge
   if (window.updateFilterBadge) {

@@ -370,6 +370,21 @@ header {
   border-color: var(--primary);
 }
 
+/* Filter icon styling */
+.filter-icon {
+  width: 24px;
+  height: 24px;
+  transition: var(--transition);
+}
+
+.filter-toggle:hover .filter-icon {
+  filter: brightness(0) invert(1); /* Gør billedet hvidt ved hover */
+}
+
+.filter-toggle.active .filter-icon {
+  filter: brightness(0) invert(1); /* Gør billedet hvidt når aktiv */
+}
+
 /* Filter badge */
 .filter-badge {
   position: absolute;
