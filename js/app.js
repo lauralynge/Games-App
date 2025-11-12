@@ -32,6 +32,11 @@ function initApp() {
   document
     .querySelector("#clear-filters")
     .addEventListener("click", clearAllFilters);
+
+  // Location dropdown event listener
+  document
+    .querySelector("#location-select")
+    .addEventListener("change", filterGames);
 }
 
 // ===== DATA HENTNING =====
@@ -47,6 +52,7 @@ async function getGames() {
   allGames = await response.json();
   console.log(`📊 JSON data modtaget: ${allGames.length} games`);
   populateGenreDropdown(); // Udfyld dropdown med genres <-----
+  LocationDropdown(); // Udfyld dropdown med locations <-----
   displayGames(allGames);
   populateCarousel(); // Tilføj top-rated games til karrussel
 }
@@ -124,7 +130,26 @@ function populateGenreDropdown() {
   }
 }
 
+// Dropdownmenu med byer
+function LocationDropdown() {
+  const locationSelect = document.querySelector("#location-select");
+  const location = new Set();
 
+  for (const game of allGames) {
+    location.add(game.location);
+  }
+
+  // Fjern gamle options undtagen 'Alle lokationer'
+  locationSelect.innerHTML = '<option value="all">Alle lokationer</option>';
+
+  const sortedLocation = Array.from(location).sort();
+  for (const location of sortedLocation) {
+    locationSelect.insertAdjacentHTML(
+      "beforeend",
+      `<option value="${location}">${location}</option>`
+    );
+  }
+}
 
 
 function filterGames() {
@@ -134,6 +159,7 @@ function filterGames() {
   const searchValue = document.querySelector("#search-input").value.toLowerCase();
   const genreValue = document.querySelector("#genre-select").value;
   const sortValue = document.querySelector("#sort-select").value;
+  const locationValue = document.querySelector("#location-select").value;
 
   // NYE playtime variable - TILFØJ KUN DISSE TO LINJER
   const playtimeFrom = Number(document.querySelector("#playtime-from").value) || 0;
@@ -162,10 +188,14 @@ function filterGames() {
     });
   }
 
+  // TRIN 3: Filter på location (fra dropdown)
+  if (locationValue !== "all") {
+    filteredGames = filteredGames.filter((game) => {
+      return game.location === locationValue;
+    });
+  }
 
-  
-  
-  // TRIN 3: Playtime filter
+  // TRIN 4: Playtime filter
   if (playtimeFrom > 0 || playtimeTo < 9999) {
     filteredGames = filteredGames.filter((game) => {
       // Antag at game.playtime er i minutter (f.eks. "30-60" eller "45")
@@ -174,12 +204,12 @@ function filterGames() {
     });
   }
 
-  // TRIN 4: Rating filter
+  // TRIN 5: Rating filter
   filteredGames = filteredGames.filter((game) => {
     return game.rating >= ratingFrom && game.rating <= ratingTo;
   });
 
-  // TRIN 5: Sortering
+  // TRIN 6: Sortering
   if (sortValue === "title") {
     filteredGames.sort((a, b) => a.title.localeCompare(b.title));
   } else if (sortValue === "playtime") {
