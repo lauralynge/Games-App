@@ -84,9 +84,35 @@ body {
   flex-direction: column;
 }
 
+/* Prevent background scroll when modal is open */
+body.modal-open {
+  overflow: hidden;
+}
+
 span {
     color: var(--text-light);
 }
+
+h1 {
+  font-family: poppins-bold, sans-serif;
+  font-size: 36px;
+  margin: 0;
+  color: var(--text);
+}
+
+h2 {
+  font-family: poppins-semibold, sans-serif;
+  font-size: 20px;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+p {
+    font-family: DM sans-serif-medium, sans-serif;
+    font-size: 16px;
+    color: var(--text);
+}
+
 /* =====================
    LAYOUT (main container)
    ===================== */
@@ -662,9 +688,7 @@ footer {
   padding: 1.5rem;
 }
 
-.game-info h3 {
-  font-size: clamp(1.125rem, 2vw, 1.375rem);
-  font-weight: 600;
+.game-info h2 {
   color: var(--text);
   display: flex;
   align-items: flex-start;
@@ -689,15 +713,15 @@ footer {
 }
 
 .game-shelf {
-    color: var(--text-light); 
-    border: 2px solid var(--primary); /* Tykkelse, tekst og farve */
-    padding: 5px 20px; /* Afstand mellem tekst og kant */
-    display: inline-block; /* Så kanten passer præcist til teksten */
-    border-radius: 25px;
-    margin-bottom: 20px;
+ color: var(--text-light); 
+ border: 2px solid var(--primary); /* Tykkelse, tekst og farve */
+ padding: 5px 30px; /* Afstand mellem tekst og kant */
+ display: inline-block; /* Så kanten passer præcist til teksten */
+ border-radius: 25px;
+ margin-bottom: 20px;
 }
 
-/* Icon styling */
+/* Icon styling game cards */
 .rating-icon{
 width: 25px;
 }
@@ -707,7 +731,6 @@ width: 25px;
 .genre-icon {
   width: 25px;
   margin-right: 10px;
-  vertical-align: left;
 }
 
 /* Align game info items with icons */
@@ -720,7 +743,6 @@ width: 25px;
   color: var(--text-light);
   font-size: 0.9rem;
 }
-
 
 /* Favorite icon positioning */
 .favorite-icon {
@@ -768,7 +790,7 @@ dialog#game-dialog {
   background: var(--bg-card);
   color: var(--text);
   overflow: hidden;
-  position: relative;
+  position: fixed;
   margin: auto;
 }
 
@@ -812,15 +834,6 @@ dialog#game-dialog::backdrop {
   max-height: 90vh;
 }
 
-@media (max-width: 768px) {
-  #dialog-content {
-    grid-template-columns: 1fr;
-    padding: 1.5rem;
-    gap: 1.5rem;
-    text-align: center;
-  }
-}
-
 #dialog-content img.game-poster {
   width: 100%;
   height: auto;
@@ -830,81 +843,51 @@ dialog#game-dialog::backdrop {
   box-shadow: var(--shadow);
 }
 
-@media (max-width: 768px) {
-  #dialog-content img.game-poster {
-    max-width: 300px;
-    margin: 0 auto;
-  }
-}
-
-.dialog-details {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-#dialog-content h2 {
-  font-size: clamp(1.5rem, 4vw, 2.25rem);
-  font-weight: 700;
-  color: var(--text);
-  line-height: 1.2;
-  margin: 0 0 1rem 0;
-}
-
-#dialog-content .game-year {
-  display: inline-block;
-  background: var(--secondary-light);
-  color: var(--primary);
-  padding: 0.25rem 0.75rem;
-  border-radius: 0.5rem;
-  margin-left: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 600;
-}
-
-#dialog-content p {
+.game-description {
+  margin-top: 1rem;
   color: var(--text-light);
-  line-height: 1.6;
-  margin: 0 0 1rem 0;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-#dialog-content p strong {
-  color: var(--text);
-  font-weight: 600;
+.dialog-game-info .game-shelf {
+ color: var(--text-light); 
+ border: 2px solid var(--primary); /* Tykkelse, tekst og farve */
+ padding: 5px 100px; /* Afstand mellem tekst og kant */
+ display: inline-block; /* Så kanten passer præcist til teksten */
+ border-radius: 25px;
+ margin-bottom: 20px;
 }
 
-#dialog-content .game-genre {
-  color: var(--secondary);
-  font-weight: 500;
-  font-size: 1.1rem;
+.game-icons-grid {
+    font-size: 16px;
 }
 
-#dialog-content .game-rating {
-  color: var(--warning);
-  font-weight: 600;
-  font-size: 1.125rem;
+.game-icons-grid .genre-icon
+.players-icon,
+.playtime-icon,
+.rating-icon,
+.age-icon,
+.difficulty-icon {
+  width: 200px;
+  margin-right: 10px;
+}
+
+/* Grid layout for dialog icons only */
+#dialog-content .game-icons-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-rows: 1fr 1fr;
+  gap: 1rem;
+  margin: 1.5rem 0;
+}
+
+#dialog-content .game-icons-grid p {
+  margin-bottom: 0;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-}
-
-@media (max-width: 768px) {
-  #dialog-content .game-rating {
-    justify-content: center;
-  }
-
-}
-
-.game-description {
-  color: var(--text) !important;
-  font-size: 1.1rem !important;
-  line-height: 1.7 !important;
-  margin-top: 1rem !important;
-  padding: 1rem;
-  background: var(--secondary-light);
-  border-radius: var(--radius);
-  border-left: 4px solid var(--secondary);
-  font-style: italic;
+  color: var(--text-light);
+  font-size: 0.9rem;
 }
 
 /* Focus styles for keyboard navigation */
@@ -913,6 +896,68 @@ dialog#game-dialog::backdrop {
   outline: 3px solid var(--secondary);
   outline-offset: 2px;
 }
+
+/* Responsivt dialog layout */
+
+@media (max-width: 768px) {
+  #dialog-content {
+    grid-template-columns: 1fr;
+    padding: 1.5rem;
+    gap: 1.5rem;
+    text-align: center;
+  }
+   #dialog-content img.game-poster {
+    max-width: 300px;
+    margin: 0 auto;
+  }
+  #dialog-content .game-rating {
+    justify-content: center;
+  }
+}
+
+/* STYLING AF IKONER PÅ DETALJESIDE */
+
+.game-info .genre-icon, .rating-icon, .players-icon, .playtime-icon, .age-icon, .difficulty-icon {
+  width: 25px;
+  display: flex;
+  align-items: center;
+  gap: 1 rem;
+}
+
+
+/* Styling af hjerte ikon på detaljeside */
+
+#dialog-content .favorite-icon {
+  position: absoute;
+  top: 10px;
+  right: 10px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 50%;
+  padding: 6px;
+  transition: transform 0.2s ease, background 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+
+  /* Touch-friendly minimum size */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.favorite-icon:hover {
+  transform: scale(1.1);
+  background: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Active state for mobile touch feedback */
+.favorite-icon:active {
+  transform: scale(0.95);
+  background: rgba(240, 240, 240, 1);
+}
+
 
 /* =====================
    DARK MODE ADJUSTMENTS
@@ -1141,4 +1186,55 @@ dialog#game-dialog::backdrop {
 #game-carousel .game-card.center .game-title h3 {
   color: var(--text);
   text-shadow: none;
+}
+
+/* =====================
+   GAMES HEADER STYLING
+   ===================== */
+.games-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding: 0 1rem;
+}
+
+.sort-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sort-controls label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.sort-controls select {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 0.5rem;
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.9rem;
+  min-width: 150px;
+}
+
+.sort-controls select:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+  .games-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .sort-controls {
+    align-self: flex-end;
+  }
 }

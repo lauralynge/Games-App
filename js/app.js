@@ -12,15 +12,12 @@ function initApp() {
   getGames();
   
   // Header søgefelt og filtre
-  document
-    .querySelector("#header-search-input")
-    .addEventListener("input", filterGames);
-  document
-    .querySelector("#header-genre-select")
-    .addEventListener("change", filterGames);
-  document
-    .querySelector("#header-sort-select")
-    .addEventListener("change", filterGames);
+  document.querySelector("#header-search-input").addEventListener("input", filterGames);
+  document.querySelector("#header-genre-select").addEventListener("change", filterGames);
+  document.querySelector("#header-sort-select").addEventListener("change", filterGames);
+
+  // Main sort dropdown (ved siden af "Alle spil")
+  document.querySelector("#main-sort-select").addEventListener("change", filterGames);
 
   // Playtime felter
   document.querySelector("#header-playtime-from").addEventListener("input", filterGames);
@@ -33,15 +30,23 @@ function initApp() {
   // Spillere felt
   document.querySelector("#header-players-from").addEventListener("input", filterGames);
 
+  // Sværhedsgrad felt
+  document.querySelector("#header-difficulty-select").addEventListener("change", filterGames);
+
+// Min. Alder felt
+  document.querySelector("#header-age-from").addEventListener("input", filterGames);
+
   // Location dropdown (nu udenfor filter panel)
-  document
-    .querySelector("#location-select")
-    .addEventListener("change", filterGames);
+  document.querySelector("#location-select").addEventListener("change", filterGames);
 
   // Clear filters knap
-  document
-    .querySelector("#header-clear-filters")
-    .addEventListener("click", clearAllFilters);
+  document.querySelector("#header-clear-filters").addEventListener("click", clearAllFilters);
+
+  // Close dialog button
+  document.querySelector("#close-dialog").addEventListener("click", () => {
+    document.querySelector("#game-dialog").close();
+    document.body.classList.remove('modal-open');
+  });
 
   // Filter panel toggle functionality
   initFilterPanel();
@@ -98,10 +103,12 @@ function initFilterPanel() {
     // Check search
     if (document.querySelector("#header-search-input").value.trim()) activeFilters++;
     
-    // Check dropdowns (location er nu separat)
+    // Check dropdowns
     if (document.querySelector("#location-select").value !== "all") activeFilters++;
-    if (document.querySelector("#header-genre-select").value !== "all") activeFilters++;
-    if (document.querySelector("#header-sort-select").value !== "none") activeFilters++;
+    if (document.querySelector("#header-genre-select").value !== "none") activeFilters++;
+    if (document.querySelector("#header-sort-select").value !== "all") activeFilters++;
+    if (document.querySelector("#main-sort-select").value !== "all") activeFilters++;
+    if (document.querySelector("#header-difficulty-select").value !== "none") activeFilters++;
     
     // Check number inputs
     if (document.querySelector("#header-playtime-from").value) activeFilters++;
@@ -109,6 +116,7 @@ function initFilterPanel() {
     if (document.querySelector("#header-rating-from").value) activeFilters++;
     if (document.querySelector("#header-rating-to").value) activeFilters++;
     if (document.querySelector("#header-players-from").value) activeFilters++;
+    if (document.querySelector("#header-age-from").value) activeFilters++;
     
     if (activeFilters > 0) {
       filterBadge.style.display = "flex";
@@ -120,15 +128,16 @@ function initFilterPanel() {
 
   // Add event listeners to all filter inputs to update badge
   const filterInputs = [
-    "#header-search-input",
-    "#location-select", // Nu separat element
     "#header-genre-select",
     "#header-sort-select",
+    "#main-sort-select",
     "#header-playtime-from",
     "#header-playtime-to", 
     "#header-rating-from",
     "#header-rating-to",
-    "#header-players-from"
+    "#header-players-from",
+    "#header-difficulty-select",
+    "#header-age-from"
   ];
 
   filterInputs.forEach(selector => {
@@ -180,7 +189,7 @@ function displayGame(game) {
         <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster" />
         <img src="Images/Favorit tomt ikon.png" alt="Favorit" class="favorite-icon" onclick="toggleFavorite(event, '${game.title}')">
       <div class="game-info">
-        <h3>${game.title} <span class="game-rating"><img src="Images/Stjerne ikon.png" alt="Rating" class="rating-icon"> ${game.rating}</span></h3>
+        <h2>${game.title} <span class="game-rating"><img src="Images/Stjerne ikon.png" alt="Rating" class="rating-icon"> ${game.rating}</span></h2>
         <p class="game-shelf">Hylde ${game.shelf}</p>
         <p class="game-players"><img src="Images/Spillere ikon.png" alt="Players" class="players-icon"> ${game.players.min}-${game.players.max} spillere</p>
         <p class="game-playtime"><img src="Images/Tid ikon.png" alt="Playtime" class="playtime-icon"> ${game.playtime} minutter </p>
@@ -222,8 +231,8 @@ function populateGenreDropdown() {
     genres.add(game.genre);
   }
 
-  // Fjern gamle options undtagen 'Alle genrer'
-  genreSelect.innerHTML = '<option value="all">Alle genrer</option>';
+  // Fjern gamle options undtagen 'Alle kategorier'
+  genreSelect.innerHTML = '<option value="none">Alle kategorier</option>';
 
   const sortedGenres = Array.from(genres).sort();
   for (const genre of sortedGenres) {
@@ -257,12 +266,21 @@ function LocationDropdown() {
 
 
 function filterGames() {
-  // Filtrer games baseret på søgning, genre, playtime, ovs.
-  // OBS: game.genre skal sammenlignes med === (ikke .includes())
+  // Filtrer games baseret på søgning, genre, playtime, ovs. // OBS: game.genre skal sammenlignes med === (ikke .includes())
 
+  // Search variable - header
   const searchValue = document.querySelector("#header-search-input").value.toLowerCase();
+
+  // Kategori (genre) variable
   const genreValue = document.querySelector("#header-genre-select").value;
-  const sortValue = document.querySelector("#header-sort-select").value;
+
+  // Sorterings variable - tjek begge sort dropdowns
+  const headerSortValue = document.querySelector("#header-sort-select").value;
+  const mainSortValue = document.querySelector("#main-sort-select").value;
+  // Brug main sort som primær, fallback til header sort
+  const sortValue = mainSortValue !== "all" ? mainSortValue : headerSortValue;
+
+  // Location variable - fra header 
   const locationValue = document.querySelector("#location-select").value;
 
   // Playtime variable - fra header
@@ -276,6 +294,12 @@ function filterGames() {
   // Antal spillere variable - fra header
   const playersFrom = Number(document.querySelector("#header-players-from").value) || 2;
 
+  // Sværhedsgrad variable - fra header
+  const difficultyValue = document.querySelector("#header-difficulty-select").value;
+
+  // Min alder variable - fra header
+  const ageFrom = Number(document.querySelector("#header-age-from").value) || 0;
+
   console.log("🔄 Filtrerer games...");
 
   // Start med alle games
@@ -288,8 +312,8 @@ function filterGames() {
     });
   }
 
-  // TRIN 2: Filter på genre (fra dropdown)
-  if (genreValue !== "all") {
+  // TRIN 2: Filter på kategori (genre) (fra dropdown)
+  if (genreValue !== "none") {
     filteredGames = filteredGames.filter((game) => {
       return game.genre.includes(genreValue);
     });
@@ -317,14 +341,28 @@ function filterGames() {
   });
 
   // TRIN 6: Antal spillere filter
-  if (playersFrom > 2) {
+  if (playersFrom > 0) {
     filteredGames = filteredGames.filter((game) => {
-      const playerCount = game.players.min; // Antal spillere
-      return playerCount >= playersFrom;
+      // Tjek om den indtastede værdi ligger inden for spillets min-max spænd
+      return playersFrom >= game.players.min && playersFrom <= game.players.max;
     });
   }
 
-  // TRIN 7: Sortering
+  // TRIN 7: Sværhedsgrad filter
+  if (difficultyValue !== "none") {
+    filteredGames = filteredGames.filter((game) => {
+      return game.difficulty === difficultyValue;
+    });
+  }
+
+  // TRIN 8: Min alder filter
+  if (ageFrom > 0) {
+    filteredGames = filteredGames.filter((game) => {
+      return game.age >= ageFrom;
+    });
+  }
+
+  // TRIN 9: Sortering
   if (sortValue === "title") {
     filteredGames.sort((a, b) => a.title.localeCompare(b.title)); // A-Å
   } else if (sortValue === "title2") {
@@ -343,9 +381,13 @@ function clearAllFilters() {
 
   // Ryd søgning og dropdown felter - header version
   document.querySelector("#header-search-input").value = "";
-  document.querySelector("#header-genre-select").value = "all";
+  document.querySelector("#header-genre-select").value = "none";
   document.querySelector("#location-select").value = "all";
-  document.querySelector("#header-sort-select").value = "none";
+  document.querySelector("#header-sort-select").value = "all";
+  document.querySelector("#header-difficulty-select").value = "none";
+
+  // Ryd main sort dropdown
+  document.querySelector("#main-sort-select").value = "all";
 
   // Ryd de nye range felter - header version
   document.querySelector("#header-playtime-from").value = "";
@@ -353,6 +395,7 @@ function clearAllFilters() {
   document.querySelector("#header-rating-from").value = "";
   document.querySelector("#header-rating-to").value = "";
   document.querySelector("#header-players-from").value = "";
+  document.querySelector("#header-age-from").value = "";
 
   // Opdater filter badge
   if (window.updateFilterBadge) {
@@ -370,14 +413,14 @@ function toggleFavorite(event, gameTitle) {
   event.stopPropagation(); // Forhindrer at game card også bliver klikket
   const favoriteIcon = event.target;
   
-  // Toggle mellem tomt og fyldt hjerte
-  if (favoriteIcon.src.includes("Favorit tomt ikon.png")) {
-    favoriteIcon.src = "Images/Favorit fyldt ikon.png";
-    console.log(`❤️ Tilføjet til favoritter: ${gameTitle}`);
-  } else {
-    favoriteIcon.src = "Images/Favorit tomt ikon.png";
-    console.log(`💔 Fjernet fra favoritter: ${gameTitle}`);
-  }
+// Toggle mellem tomt og fyldt hjerte
+ if (favoriteIcon.src.includes("Favorit tomt ikon.png")) {
+  favoriteIcon.src = "Images/Favorit fyldt ikon.png";
+  console.log(`❤️ Tilføjet til favoritter: ${gameTitle}`);
+ } else {
+  favoriteIcon.src = "Images/Favorit tomt ikon.png";
+  console.log(`💔 Fjernet fra favoritter: ${gameTitle}`);
+ }
 }
 
   // Vis (alle) game detaljer i modal
@@ -389,21 +432,42 @@ function showGameModal(game) {
   // Byg HTML struktur dynamisk
   const dialogContent = document.querySelector("#dialog-content");
   dialogContent.innerHTML = `
-   <img src="${game.image}" 
-      alt="Poster of ${game.title}" class="game-poster" />
-   <div class="game-info">
-      <h3>${game.title} <span class="game-playtime">(${game.playtime})</span></h3>
-      <p class="game-genre">${game.genre}</p>   
-      <p class="game-rating">⭐ ${game.rating}</p>
-      <p class="game-players">${game.players.min}-${game.players.max} spillere</p>
-      <p class="game-director"><strong>Difficulty:</strong> ${game.difficulty}</p>
-      <p class="game-age"><strong>Age:</strong> ${game.age}+</p>
+   <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster" />
+   <img src="Images/Favorit tomt ikon.png" alt="Favorit" class="favorite-icon" onclick="toggleFavorite(event, '${game.title}')">
+   <div class="dialog-game-info">
+      <h1>${game.title} </h1>
+      <h2 class="game-description">${game.description}</h2>
+      <p class="game-shelf">Hylde ${game.shelf}</p>
+      <div class="game-icons-grid">
+        <p class="game-genre"><img src="Images/Kategori ikon.png" alt="Genre" class="genre-icon"> ${game.genre}</p> 
+        <p class="game-rating"><img src="Images/Stjerne ikon.png" alt="Rating" class="rating-icon"> ${game.rating}</p>
+        <p class="game-players"><img src="Images/Spillere ikon.png" alt="Players" class="players-icon"> ${game.players.min}-${game.players.max} spillere</p>
+        <p class="game-playtime"><img src="Images/Tid ikon.png" alt="Playtime" class="playtime-icon"> ${game.playtime} minutter </p>
+        <p class="game-age"><img src="Images/Alder ikon.png" alt="Age" class="age-icon"> ${game.age}+</p>
+        <p class="game-difficulty"><img src="Images/Sværhedsgrad ikon.png" alt="Difficulty" class="difficulty-icon"> ${game.difficulty}</p>
+      </div>
+      <p class="game-rules">${game.rules}</p>
       </div>
   `;
 
-  // Åbn modalen
+  // Åbn modalen og forhindre baggrunds scroll
+  document.body.classList.add('modal-open');
   document.querySelector("#game-dialog").showModal();
+  
+  // Luk modal ved klik på backdrop eller ESC
+  const dialog = document.querySelector("#game-dialog");
+  
+  dialog.addEventListener('close', () => {
+    document.body.classList.remove('modal-open');
+  });
+  
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      dialog.close();
+    }
+  });
 }
+
 
 // ==== KARUSSEL ====
 

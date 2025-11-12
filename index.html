@@ -38,7 +38,7 @@
           <div class="filter-row">
             <label for="header-sort-select">Sorter efter</label>
             <select id="header-sort-select">
-              <option value="none">Ingen sortering</option>
+              <option value="all">Ingen sortering</option>
               <option value="title">Titel (A-Å)</option>
               <option value="title2">Titel (Å-A)</option>
               <option value="rating">Mest populære</option>
@@ -48,7 +48,7 @@
          <div class="filter-row">
             <label for="header-genre-select">Kategori</label>
             <select id="header-genre-select">
-              <option value="all">Alle kategorier</option>
+              <option value="none">Alle kategorier</option>
             </select>
           </div>
 
@@ -59,7 +59,6 @@
             </div>
           </div>
           
-          
           <div class="filter-row">
             <label>Spilletid (min):</label>
             <div class="range-inputs">
@@ -68,6 +67,24 @@
               <input type="number" id="header-playtime-to" placeholder="Til" min="0" max="300" step="15">
             </div>
           </div>
+
+          <div class="filter-row">
+            <label for="header-difficulty-select">Sværhedsgrad</label>
+            <select id="header-difficulty-select">
+              <option value="none">Alle sværhedsgrader</option>
+              <option value="Let">Let</option>
+              <option value="Mellem">Mellem</option>
+              <option value="Svær">Svær</option>
+            </select>
+          </div>
+
+            <div class="filter-row">
+            <label>Min. Alder</label>
+            <div class="range-inputs">
+              <input type="number" id="header-age-from" placeholder="Fra" min="0" max="100" step="1">
+            </div>
+          </div>
+          
           
           <div class="filter-row">
             <label>Rating:</label>
@@ -99,7 +116,18 @@
      </div>
         
        <section>
-        <h1>Alle spil</h1>
+        <div class="games-header">
+          <h1>Alle spil</h1>
+          <div class="sort-controls">
+            <label for="main-sort-select">Sorter efter:</label>
+            <select id="main-sort-select">
+              <option value="all">Ingen sortering</option>
+              <option value="title">Titel (A-Å)</option>
+              <option value="title2">Titel (Å-A)</option>
+              <option value="rating">Mest populære</option>
+            </select>
+          </div>
+        </div>
      </section>
 
       <!-- Game List -->
