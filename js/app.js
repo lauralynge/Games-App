@@ -4,112 +4,146 @@
 document.addEventListener("DOMContentLoaded", initApp);
 
 // ===== GLOBALE VARIABLER =====
-let allGames = []; 
+let allGames = [];
 
 // ===== INITIALISERING =====
 function initApp() {
   console.log("initApp: app.js is running 🎉");
   getGames(); // Hent alle games fra JSON og start applikationen
-  
+
   // ===== HEADER SØGNING OG FILTRERING =====
   // Søgefelt i header - filtrer på spilnavn når brugeren skriver
-  document.querySelector("#header-search-input").addEventListener("input", filterGames);
-  
+  document
+    .querySelector("#header-search-input")
+    .addEventListener("input", filterGames);
+
   // Genre/kategori dropdown i header - filtrer når bruger vælger kategori
-  document.querySelector("#header-genre-select").addEventListener("change", filterGames);
-  
+  document
+    .querySelector("#header-genre-select")
+    .addEventListener("change", filterGames);
+
   // Sort dropdown i header - sortér spil når bruger ændrer sortering
-  document.querySelector("#header-sort-select").addEventListener("change", filterGames);
+  document
+    .querySelector("#header-sort-select")
+    .addEventListener("change", filterGames);
 
   // ===== MAIN SORTERING =====
   // Sort dropdown ved siden af "Alle spil" overskriften - alternativ til header sort
-  document.querySelector("#main-sort-select").addEventListener("change", filterGames);
+  document
+    .querySelector("#main-sort-select")
+    .addEventListener("change", filterGames);
 
   // ===== SPILLETID RANGE FILTRERING =====
   // "Fra" spilletid felt - auto-udfyldning af "til" felt
-  document.querySelector("#header-playtime-from").addEventListener("input", function() {
-    const fromValue = this.value; // Hent den indtastede "fra" værdi
-    const toField = document.querySelector("#header-playtime-to"); // Find "til" feltet
-    
-    // AUTOMATISK BEREGNING: Hver gang "Fra" ændres, sæt "Til" til +15 minutter
-    // Eksempel: Fra=30 → Til=45, Fra=60 → Til=75
-    if (fromValue) {
-      toField.value = parseInt(fromValue) + 15; // Konverterer til tal og læg 15 til
-    } else {
-      // Hvis "Fra" ryddes (tomt), ryd også "Til" for at nulstille filteret
-      toField.value = "";
-    }
-    
-    filterGames(); // Kører ny filtrering med opdaterede værdier
-  });
-  
+  document
+    .querySelector("#header-playtime-from")
+    .addEventListener("input", function () {
+      const fromValue = this.value; // Hent den indtastede "fra" værdi
+      const toField = document.querySelector("#header-playtime-to"); // Find "til" feltet
+
+      // AUTOMATISK BEREGNING: Hver gang "Fra" ændres, sæt "Til" til +15 minutter
+      // Eksempel: Fra=30 → Til=45, Fra=60 → Til=75
+      if (fromValue) {
+        toField.value = parseInt(fromValue) + 15; // Konverterer til tal og læg 15 til
+      } else {
+        // Hvis "Fra" ryddes (tomt), ryd også "Til" for at nulstille filteret
+        toField.value = "";
+      }
+
+      filterGames(); // Kører ny filtrering med opdaterede værdier
+    });
+
   // "Til" spilletid felt - manuel justering af spilletid range
-  document.querySelector("#header-playtime-to").addEventListener("input", filterGames);
+  document
+    .querySelector("#header-playtime-to")
+    .addEventListener("input", filterGames);
 
   // ===== RATING FELTER - AVANCERET SYNKRONISERING =====
   // Rating "Fra" felt - tillader bruger fleksibilitet men sikrer logiske værdier
-  document.querySelector("#header-rating-from").addEventListener("input", function() {
-    const fromValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
-    const toField = document.querySelector("#header-rating-to");
-    const toValue = parseInt(toField.value); // Hent nuværende "Til" værdi
-    
-    // SCENARIE 1: Bruger ændrer "Fra" og "Til" bliver for lav
-    // Eksempel: Fra=2→5, Til=3 → Fra=5, Til=5 (auto-justering)
-    if (fromValue && toValue && toValue < fromValue) {
-      toField.value = fromValue; // Løft "Til" til samme niveau som "Fra"
-      console.log(`📊 Rating auto-justering: Til løftet fra ${toValue} til ${fromValue}`);
-    }
-    // SCENARIE 2: Første gang "Fra" udfyldes (smart initialisering)
-    // Eksempel: Fra=tom→3, Til=tom → Fra=3, Til=4 (+1 for god range)
-    else if (fromValue && !toField.value) {
-      toField.value = Math.min(5, fromValue + 1); // +1 men aldrig over max 5
-      console.log(`📊 Rating initialisering: Fra=${fromValue}, Til=${toField.value}`);
-    }
-    
-    filterGames(); // Kør filtrering med nye værdier
-  });
-  
+  document
+    .querySelector("#header-rating-from")
+    .addEventListener("input", function () {
+      const fromValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
+      const toField = document.querySelector("#header-rating-to");
+      const toValue = parseInt(toField.value); // Hent nuværende "Til" værdi
+
+      // SCENARIE 1: Bruger ændrer "Fra" og "Til" bliver for lav
+      // Eksempel: Fra=2→5, Til=3 → Fra=5, Til=5 (auto-justering)
+      if (fromValue && toValue && toValue < fromValue) {
+        toField.value = fromValue; // Løft "Til" til samme niveau som "Fra"
+        console.log(
+          `📊 Rating auto-justering: Til løftet fra ${toValue} til ${fromValue}`
+        );
+      }
+      // SCENARIE 2: Første gang "Fra" udfyldes (smart initialisering)
+      // Eksempel: Fra=tom→3, Til=tom → Fra=3, Til=4 (+1 for god range)
+      else if (fromValue && !toField.value) {
+        toField.value = Math.min(5, fromValue + 1); // +1 men aldrig over max 5
+        console.log(
+          `📊 Rating initialisering: Fra=${fromValue}, Til=${toField.value}`
+        );
+      }
+
+      filterGames(); // Kør filtrering med nye værdier
+    });
+
   // Rating "Til" felt - validerer at "Fra" ≤ "Til" reglen overholdes
-  document.querySelector("#header-rating-to").addEventListener("input", function() {
-    const toValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
-    const fromField = document.querySelector("#header-rating-from");
-    const fromValue = parseInt(fromField.value); // Hent nuværende "Fra" værdi
-    
-    // SCENARIE 1: Bruger sætter "Til" lavere end "Fra" (ulovligt)
-    // Eksempel: Fra=4, Til=5→2 → Fra=2, Til=2 (auto-justering)
-    if (toValue && fromValue && toValue < fromValue) {
-      fromField.value = toValue; // Sænk "Fra" til samme niveau som "Til"
-      console.log(`📊 Rating validering: Fra sænket fra ${fromValue} til ${toValue}`);
-    }
-    // SCENARIE 2: Første gang "Til" udfyldes (smart initialisering)
-    // Eksempel: Fra=tom, Til=tom→4 → Fra=2, Til=4 (2-punkts range)
-    else if (toValue && !fromField.value) {
-      fromField.value = Math.max(0, toValue - 2); // -2 for god range, men aldrig under 0
-      console.log(`📊 Rating initialisering: Fra=${fromField.value}, Til=${toValue}`);
-    }
-    
-    filterGames(); // Kør filtrering med nye værdier
-  });
+  document
+    .querySelector("#header-rating-to")
+    .addEventListener("input", function () {
+      const toValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
+      const fromField = document.querySelector("#header-rating-from");
+      const fromValue = parseInt(fromField.value); // Hent nuværende "Fra" værdi
+
+      // SCENARIE 1: Bruger sætter "Til" lavere end "Fra" (ulovligt)
+      // Eksempel: Fra=4, Til=5→2 → Fra=2, Til=2 (auto-justering)
+      if (toValue && fromValue && toValue < fromValue) {
+        fromField.value = toValue; // Sænk "Fra" til samme niveau som "Til"
+        console.log(
+          `📊 Rating validering: Fra sænket fra ${fromValue} til ${toValue}`
+        );
+      }
+      // SCENARIE 2: Første gang "Til" udfyldes (smart initialisering)
+      // Eksempel: Fra=tom, Til=tom→4 → Fra=2, Til=4 (2-punkts range)
+      else if (toValue && !fromField.value) {
+        fromField.value = Math.max(0, toValue - 2); // -2 for god range, men aldrig under 0
+        console.log(
+          `📊 Rating initialisering: Fra=${fromField.value}, Til=${toValue}`
+        );
+      }
+
+      filterGames(); // Kør filtrering med nye værdier
+    });
 
   // Spillere felt
-  document.querySelector("#header-players-from").addEventListener("input", filterGames);
+  document
+    .querySelector("#header-players-from")
+    .addEventListener("input", filterGames);
 
   // Sværhedsgrad felt
-  document.querySelector("#header-difficulty-select").addEventListener("change", filterGames);
+  document
+    .querySelector("#header-difficulty-select")
+    .addEventListener("change", filterGames);
 
-// Min. Alder felt
-  document.querySelector("#header-age-from").addEventListener("input", filterGames);
+  // Min. Alder felt
+  document
+    .querySelector("#header-age-from")
+    .addEventListener("input", filterGames);
 
   // Location dropdown (nu udenfor filter panel)
-  document.querySelector("#location-select").addEventListener("change", filterGames);
+  document
+    .querySelector("#location-select")
+    .addEventListener("change", filterGames);
 
   // Clear filters knap
-  document.querySelector("#header-clear-filters").addEventListener("click", clearAllFilters);
+  document
+    .querySelector("#header-clear-filters")
+    .addEventListener("click", clearAllFilters);
 
   // Close dialog button
   document.querySelector("#close-dialog").addEventListener("click", () => {
     document.querySelector("#game-dialog").close();
-    document.body.classList.remove('modal-open');
+    document.body.classList.remove("modal-open");
   });
 
   // Filter panel toggle functionality
@@ -127,7 +161,7 @@ function initFilterPanel() {
   filterToggle.addEventListener("click", (e) => {
     e.stopPropagation();
     const isOpen = filterPanel.classList.contains("open");
-    
+
     if (isOpen) {
       closeFilterPanel();
     } else {
@@ -163,32 +197,44 @@ function initFilterPanel() {
   // Update filter badge count
   function updateFilterBadge() {
     let activeFilters = 0;
-    
+
     // Check search
-    if (document.querySelector("#header-search-input").value.trim()) activeFilters++;
-    
+    if (document.querySelector("#header-search-input").value.trim())
+      activeFilters++;
+
     // Check dropdowns
-    if (document.querySelector("#location-select").value !== "all") activeFilters++;
-    if (document.querySelector("#header-genre-select").value !== "none") activeFilters++;
-    if (document.querySelector("#header-sort-select").value !== "all") activeFilters++;
-    if (document.querySelector("#main-sort-select").value !== "all") activeFilters++;
-    if (document.querySelector("#header-difficulty-select").value !== "none") activeFilters++;
-    
+    if (document.querySelector("#location-select").value !== "all")
+      activeFilters++;
+    if (document.querySelector("#header-genre-select").value !== "none")
+      activeFilters++;
+    if (document.querySelector("#header-sort-select").value !== "all")
+      activeFilters++;
+    if (document.querySelector("#main-sort-select").value !== "all")
+      activeFilters++;
+    if (document.querySelector("#header-difficulty-select").value !== "none")
+      activeFilters++;
+
     // Check number inputs - men spilletid tæller kun som én filtrering
     // Spilletid (tæller kun som ét filter hvis mindst et af felterne er udfyldt)
-    if (document.querySelector("#header-playtime-from").value || document.querySelector("#header-playtime-to").value) {
+    if (
+      document.querySelector("#header-playtime-from").value ||
+      document.querySelector("#header-playtime-to").value
+    ) {
       activeFilters++;
     }
-    
-    // Rating (tæller kun som ét filter hvis mindst et af felterne er udfyldt)  
-    if (document.querySelector("#header-rating-from").value || document.querySelector("#header-rating-to").value) {
+
+    // Rating (tæller kun som ét filter hvis mindst et af felterne er udfyldt)
+    if (
+      document.querySelector("#header-rating-from").value ||
+      document.querySelector("#header-rating-to").value
+    ) {
       activeFilters++;
     }
-    
+
     // Øvrige enkelt-felter
     if (document.querySelector("#header-players-from").value) activeFilters++;
     if (document.querySelector("#header-age-from").value) activeFilters++;
-    
+
     if (activeFilters > 0) {
       filterBadge.style.display = "flex";
       filterBadge.textContent = activeFilters;
@@ -203,15 +249,15 @@ function initFilterPanel() {
     "#header-sort-select",
     "#main-sort-select",
     "#header-playtime-from",
-    "#header-playtime-to", 
+    "#header-playtime-to",
     "#header-rating-from",
     "#header-rating-to",
     "#header-players-from",
     "#header-difficulty-select",
-    "#header-age-from"
+    "#header-age-from",
   ];
 
-  filterInputs.forEach(selector => {
+  filterInputs.forEach((selector) => {
     const element = document.querySelector(selector);
     if (element) {
       element.addEventListener("input", updateFilterBadge);
@@ -256,8 +302,10 @@ function displayGames(games) {
 // Vis ÉT game card til game list
 function displayGame(game) {
   const gameList = document.querySelector("#game-list");
-  const favoriteIconSrc = isFavorite(game.title) ? "Images/Favorit fyldt ikon.png" : "Images/Favorit tomt ikon.png";
-  
+  const favoriteIconSrc = isFavorite(game.title)
+    ? "Images/Favorit fyldt ikon.png"
+    : "Images/Favorit tomt ikon.png";
+
   const gameHTML = `
     <article class="game-card">
         <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster" />
@@ -281,7 +329,6 @@ function displayGame(game) {
     showGameModal(game);
   });
 
-
   // Tilføj keyboard support
   newCard.addEventListener("keydown", function (event) {
     if (event.key === "Enter" || event.key === " ") {
@@ -290,9 +337,8 @@ function displayGame(game) {
     }
   });
 }
-  // Husk: game.players er et OBJECT!
-  // Er der andre properties, du skal tænke over?
-
+// Husk: game.players er et OBJECT!
+// Er der andre properties, du skal tænke over?
 
 // ===== FILTRERING =====
 
@@ -338,12 +384,13 @@ function LocationDropdown() {
   }
 }
 
-
 function filterGames() {
   // Filtrer games baseret på søgning, genre, playtime, ovs. // OBS: game.genre skal sammenlignes med === (ikke .includes())
 
   // Search variable - header
-  const searchValue = document.querySelector("#header-search-input").value.toLowerCase();
+  const searchValue = document
+    .querySelector("#header-search-input")
+    .value.toLowerCase();
 
   // Kategori (genre) variable
   const genreValue = document.querySelector("#header-genre-select").value;
@@ -354,13 +401,15 @@ function filterGames() {
   // Brug main sort som primær, fallback til header sort
   const sortValue = mainSortValue !== "all" ? mainSortValue : headerSortValue;
 
-  // Location variable - fra header 
+  // Location variable - fra header
   const locationValue = document.querySelector("#location-select").value;
 
   // Playtime variable - fra header
-  const playtimeFromInput = document.querySelector("#header-playtime-from").value;
+  const playtimeFromInput = document.querySelector(
+    "#header-playtime-from"
+  ).value;
   const playtimeToInput = document.querySelector("#header-playtime-to").value;
-  
+
   const playtimeFrom = Number(playtimeFromInput) || 0;
   // Hvis kun "Fra" er udfyldt, sæt automatisk "Til" til +15 min
   let playtimeTo;
@@ -371,14 +420,19 @@ function filterGames() {
   }
 
   // Rating variable - fra header
-  const ratingFrom = Number(document.querySelector("#header-rating-from").value) || 0;
-  const ratingTo = Number(document.querySelector("#header-rating-to").value) || 10;
+  const ratingFrom =
+    Number(document.querySelector("#header-rating-from").value) || 0;
+  const ratingTo =
+    Number(document.querySelector("#header-rating-to").value) || 10;
 
   // Antal spillere variable - fra header
-  const playersFrom = Number(document.querySelector("#header-players-from").value) || 2;
+  const playersFrom =
+    Number(document.querySelector("#header-players-from").value) || 2;
 
   // Sværhedsgrad variable - fra header
-  const difficultyValue = document.querySelector("#header-difficulty-select").value;
+  const difficultyValue = document.querySelector(
+    "#header-difficulty-select"
+  ).value;
 
   // Min alder variable - fra header
   const ageFrom = Number(document.querySelector("#header-age-from").value) || 0;
@@ -464,16 +518,16 @@ function updateActiveFiltersDisplay() {
   const activeFilters = getActiveFilters();
   const filtersSection = document.querySelector("#active-filters-section");
   const filtersList = document.querySelector("#active-filters-list");
-  
+
   if (activeFilters.length === 0) {
     filtersSection.style.display = "none";
     return;
   }
-  
+
   filtersSection.style.display = "block";
   filtersList.innerHTML = "";
-  
-  activeFilters.forEach(filter => {
+
+  activeFilters.forEach((filter) => {
     const filterTag = createFilterTag(filter);
     filtersList.appendChild(filterTag);
   });
@@ -481,55 +535,58 @@ function updateActiveFiltersDisplay() {
 
 function getActiveFilters() {
   const filters = [];
-  
+
   // Søgning
-  const searchValue = document.querySelector("#header-search-input").value.trim();
+  const searchValue = document
+    .querySelector("#header-search-input")
+    .value.trim();
   if (searchValue) {
     filters.push({
       type: "search",
       label: `Søger: "${searchValue}"`,
-      value: searchValue
+      value: searchValue,
     });
   }
-  
+
   // Kategori
   const genreValue = document.querySelector("#header-genre-select").value;
   if (genreValue !== "none") {
     filters.push({
       type: "genre",
       label: `Kategori: ${genreValue}`,
-      value: genreValue
+      value: genreValue,
     });
   }
-  
+
   // Location
   const locationValue = document.querySelector("#location-select").value;
   if (locationValue !== "all") {
     filters.push({
       type: "location",
       label: `Lokation: ${locationValue}`,
-      value: locationValue
+      value: locationValue,
     });
   }
-  
+
   // Sortering
   const headerSortValue = document.querySelector("#header-sort-select").value;
   const mainSortValue = document.querySelector("#main-sort-select").value;
-  const activeSortValue = mainSortValue !== "all" ? mainSortValue : headerSortValue;
-  
+  const activeSortValue =
+    mainSortValue !== "all" ? mainSortValue : headerSortValue;
+
   if (activeSortValue !== "all") {
     const sortLabels = {
-      "title": "Titel (A-Å)",
-      "title2": "Titel (Å-A)", 
-      "rating": "Mest populære"
+      title: "Titel (A-Å)",
+      title2: "Titel (Å-A)",
+      rating: "Mest populære",
     };
     filters.push({
       type: "sort",
       label: `Sorteret: ${sortLabels[activeSortValue]}`,
-      value: activeSortValue
+      value: activeSortValue,
     });
   }
-  
+
   // Spilletid
   const playtimeFrom = document.querySelector("#header-playtime-from").value;
   const playtimeTo = document.querySelector("#header-playtime-to").value;
@@ -545,10 +602,10 @@ function getActiveFilters() {
     filters.push({
       type: "playtime",
       label: `Spilletid: ${fromText}-${toText} min`,
-      value: { from: playtimeFrom, to: playtimeTo }
+      value: { from: playtimeFrom, to: playtimeTo },
     });
   }
-  
+
   // Rating
   const ratingFrom = document.querySelector("#header-rating-from").value;
   const ratingTo = document.querySelector("#header-rating-to").value;
@@ -558,40 +615,42 @@ function getActiveFilters() {
     filters.push({
       type: "rating",
       label: `Rating: ${fromText}-${toText}`,
-      value: { from: ratingFrom, to: ratingTo }
+      value: { from: ratingFrom, to: ratingTo },
     });
   }
-  
+
   // Antal spillere
   const playersFrom = document.querySelector("#header-players-from").value;
   if (playersFrom) {
     filters.push({
       type: "players",
       label: `Min. spillere: ${playersFrom}`,
-      value: playersFrom
+      value: playersFrom,
     });
   }
-  
+
   // Sværhedsgrad
-  const difficultyValue = document.querySelector("#header-difficulty-select").value;
+  const difficultyValue = document.querySelector(
+    "#header-difficulty-select"
+  ).value;
   if (difficultyValue !== "none") {
     filters.push({
       type: "difficulty",
       label: `Sværhedsgrad: ${difficultyValue}`,
-      value: difficultyValue
+      value: difficultyValue,
     });
   }
-  
+
   // Min. alder
   const ageFrom = document.querySelector("#header-age-from").value;
   if (ageFrom) {
     filters.push({
       type: "age",
       label: `Min. ${ageFrom} år`,
-      value: ageFrom
+      value: ageFrom,
     });
   }
-  
+
   return filters;
 }
 
@@ -599,11 +658,11 @@ function createFilterTag(filter) {
   const tag = document.createElement("button");
   tag.className = "active-filter-tag";
   tag.innerHTML = `${filter.label} <span class="filter-remove-icon">×</span>`;
-  
+
   tag.addEventListener("click", () => {
     removeFilter(filter);
   });
-  
+
   return tag;
 }
 
@@ -641,12 +700,12 @@ function removeFilter(filter) {
       document.querySelector("#header-age-from").value = "";
       break;
   }
-  
+
   // Opdaterer filter badge efter fjernelse ved filter knapperne
   if (window.updateFilterBadge) {
     window.updateFilterBadge();
   }
-  
+
   // Kør filter igen for at opdatere listen
   filterGames();
 }
@@ -690,10 +749,10 @@ function clearAllFilters() {
 function toggleFavorite(event, gameTitle) {
   event.stopPropagation(); // Forhindrer at game card også bliver klikket
   const favoriteIcon = event.target;
-  
+
   // Hent eksisterende favoritter fra localStorage
   let favorites = getFavorites();
-  
+
   // Toggle mellem tomt og fyldt hjerte
   if (favoriteIcon.src.includes("Favorit tomt ikon.png")) {
     favoriteIcon.src = "Images/Favorit fyldt ikon.png";
@@ -706,33 +765,35 @@ function toggleFavorite(event, gameTitle) {
   } else {
     favoriteIcon.src = "Images/Favorit tomt ikon.png";
     // Fjern fra favoritter
-    favorites = favorites.filter(title => title !== gameTitle);
+    favorites = favorites.filter((title) => title !== gameTitle);
     saveFavorites(favorites);
     console.log(`💔 Fjernet fra favoritter: ${gameTitle}`);
   }
-  
+
   // Opdater alle ikoner for dette spil (både i grid og dialog)
   updateFavoriteIcons(gameTitle, favorites.includes(gameTitle));
 }
 
 // Hent favoritter fra localStorage
 function getFavorites() {
-  const favorites = localStorage.getItem('gamesFavorites');
+  const favorites = localStorage.getItem("gamesFavorites");
   return favorites ? JSON.parse(favorites) : [];
 }
 
-// Gem favoritter i localStorage  
+// Gem favoritter i localStorage
 function saveFavorites(favorites) {
-  localStorage.setItem('gamesFavorites', JSON.stringify(favorites));
+  localStorage.setItem("gamesFavorites", JSON.stringify(favorites));
 }
 
 // Opdater alle favorit-ikoner for et specifikt spil
 function updateFavoriteIcons(gameTitle, isFavorite) {
-  const iconSrc = isFavorite ? "Images/Favorit fyldt ikon.png" : "Images/Favorit tomt ikon.png";
-  
+  const iconSrc = isFavorite
+    ? "Images/Favorit fyldt ikon.png"
+    : "Images/Favorit tomt ikon.png";
+
   // Find alle ikoner for dette spil (både i grid og dialog)
   const allIcons = document.querySelectorAll(`img[onclick*="${gameTitle}"]`);
-  allIcons.forEach(icon => {
+  allIcons.forEach((icon) => {
     icon.src = iconSrc;
   });
 }
@@ -743,16 +804,18 @@ function isFavorite(gameTitle) {
   return favorites.includes(gameTitle);
 }
 
-  // Vis (alle) game detaljer i modal
-  // Hvilke felter har et game? (Se JSON strukturen)
+// Vis (alle) game detaljer i modal
+// Hvilke felter har et game? (Se JSON strukturen)
 
 function showGameModal(game) {
   console.log("🎭 Åbner modal for:", game.title);
 
   // Byg HTML struktur dynamisk
   const dialogContent = document.querySelector("#dialog-content");
-  const favoriteIconSrc = isFavorite(game.title) ? "Images/Favorit fyldt ikon.png" : "Images/Favorit tomt ikon.png";
-  
+  const favoriteIconSrc = isFavorite(game.title)
+    ? "Images/Favorit fyldt ikon.png"
+    : "Images/Favorit tomt ikon.png";
+
   dialogContent.innerHTML = `
    <div class="game-poster-container">
      <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster" />
@@ -775,23 +838,22 @@ function showGameModal(game) {
   `;
 
   // Åbn modalen og forhindre baggrunds scroll
-  document.body.classList.add('modal-open');
+  document.body.classList.add("modal-open");
   document.querySelector("#game-dialog").showModal();
-  
+
   // Luk modal ved klik på backdrop eller ESC
   const dialog = document.querySelector("#game-dialog");
-  
-  dialog.addEventListener('close', () => {
-    document.body.classList.remove('modal-open');
+
+  dialog.addEventListener("close", () => {
+    document.body.classList.remove("modal-open");
   });
-  
-  dialog.addEventListener('click', (e) => {
+
+  dialog.addEventListener("click", (e) => {
     if (e.target === dialog) {
       dialog.close();
     }
   });
 }
-
 
 // ==== KARUSSEL ====
 
@@ -804,25 +866,23 @@ let isDragging = false;
 // Populate karrussel med top-rated games (infinite loop)
 function populateCarousel() {
   // Sortér games efter rating og tag de 10 bedste
-  carouselGames = allGames
-    .sort((a, b) => b.rating - a.rating)
-    .slice(0, 10);
-  
+  carouselGames = allGames.sort((a, b) => b.rating - a.rating).slice(0, 10);
+
   // Ryd karrussel
   document.querySelector("#game-carousel").innerHTML = "";
-  
+
   // Tilføj games til karrussel med duplicates for infinite effect
   createInfiniteCarousel();
-  
+
   // Start i midten af den udvidede array
   currentCarouselIndex = carouselGames.length;
-  
+
   // Tilføj click events til karrussel cards
   addCarouselClickEvents();
-  
+
   // Tilføj swipe events
   addSwipeEvents();
-  
+
   // Sæt initial fokus
   updateCarouselPosition();
 }
@@ -830,20 +890,24 @@ function populateCarousel() {
 // Opret uendelig karrussel med duplicate kort
 function createInfiniteCarousel() {
   const carousel = document.querySelector("#game-carousel");
-  
+
   // Opret extended array: [copies, original, copies]
   const extendedGames = [
     ...carouselGames, // Copies til venstre
     ...carouselGames, // Original games
-    ...carouselGames  // Copies til højre
+    ...carouselGames, // Copies til højre
   ];
-  
+
   // Tilføj alle kort til DOM
   for (let i = 0; i < extendedGames.length; i++) {
     const game = extendedGames[i];
     const gameHTML = `
-      <article class="game-card" data-index="${i}" data-original-index="${i % carouselGames.length}">
-          <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster"/>
+      <article class="game-card" data-index="${i}" data-original-index="${
+      i % carouselGames.length
+    }">
+          <img src="${game.image}" alt="Poster of ${
+      game.title
+    }" class="game-poster"/>
       <div class="game-title">
           <h3>${game.title}</h3>
       </div>
@@ -867,20 +931,20 @@ function nextSlide() {
   // Forhindre spam-swipes
   if (isNavigating) return;
   isNavigating = true;
-  
+
   currentCarouselIndex++;
-  
+
   updateCarouselPosition();
-  
+
   // Seamless reset når vi når enden af det andet sæt
   if (currentCarouselIndex >= carouselGames.length * 2) {
     setTimeout(() => {
       const carousel = document.querySelector("#game-carousel");
-      carousel.style.transition = 'none';
+      carousel.style.transition = "none";
       currentCarouselIndex = carouselGames.length;
       updateCarouselPosition();
       setTimeout(() => {
-        carousel.style.transition = 'transform 0.5s ease';
+        carousel.style.transition = "transform 0.5s ease";
         isNavigating = false; // Tillad næste navigation
       }, 10);
     }, 500);
@@ -897,20 +961,20 @@ function prevSlide() {
   // Forhindre spam-swipes
   if (isNavigating) return;
   isNavigating = true;
-  
+
   currentCarouselIndex--;
-  
+
   updateCarouselPosition();
-  
+
   // Seamless reset når vi når starten af det første sæt
   if (currentCarouselIndex < carouselGames.length) {
     setTimeout(() => {
       const carousel = document.querySelector("#game-carousel");
-      carousel.style.transition = 'none';
+      carousel.style.transition = "none";
       currentCarouselIndex = carouselGames.length * 2 - 1;
       updateCarouselPosition();
       setTimeout(() => {
-        carousel.style.transition = 'transform 0.5s ease';
+        carousel.style.transition = "transform 0.5s ease";
         isNavigating = false; // Tillad næste navigation
       }, 10);
     }, 500);
@@ -926,32 +990,33 @@ function prevSlide() {
 function updateCarouselPosition() {
   const carousel = document.querySelector("#game-carousel");
   const cards = document.querySelectorAll("#game-carousel .game-card");
-  
+
   // Præcise målinger for symmetrisk layout
   const cardWidth = 180; // kort bredde (normal størrelse)
   const cardGap = 24; // 1.5rem gap mellem kort
   const totalCardWidth = cardWidth + cardGap;
-  
+
   const containerWidth = carousel.parentElement.offsetWidth;
-  
+
   // Perfekt centrering for symmetrisk visning
   const centerPosition = containerWidth / 2 - cardWidth / 2;
-  let offset = centerPosition - (currentCarouselIndex * totalCardWidth);
-  
+  let offset = centerPosition - currentCarouselIndex * totalCardWidth;
+
   carousel.style.transform = `translateX(${offset}px)`;
-  
+
   // Opdater fokus classes for infinite carousel
   cards.forEach((card, index) => {
     card.classList.remove("center", "adjacent");
-    
+
     // Find hvilket kort vi faktisk fokuserer på (modulo operation for infinite)
     const actualIndex = currentCarouselIndex % carouselGames.length;
     const cardIndex = index % carouselGames.length;
-    
+
     if (cardIndex === actualIndex) {
       card.classList.add("center");
     } else if (
-      cardIndex === (actualIndex - 1 + carouselGames.length) % carouselGames.length ||
+      cardIndex ===
+        (actualIndex - 1 + carouselGames.length) % carouselGames.length ||
       cardIndex === (actualIndex + 1) % carouselGames.length
     ) {
       card.classList.add("adjacent");
@@ -963,12 +1028,14 @@ function updateCarouselPosition() {
 function addSwipeEvents() {
   const carousel = document.querySelector("#game-carousel");
   const container = document.querySelector(".carousel-container");
-  
+
   // Touch events
-  container.addEventListener("touchstart", handleTouchStart, { passive: false });
+  container.addEventListener("touchstart", handleTouchStart, {
+    passive: false,
+  });
   container.addEventListener("touchmove", handleTouchMove, { passive: false });
   container.addEventListener("touchend", handleTouchEnd);
-  
+
   // Mouse events for desktop
   container.addEventListener("mousedown", handleMouseStart);
   container.addEventListener("mousemove", handleMouseMove);
@@ -986,37 +1053,37 @@ function handleTouchMove(e) {
   if (!isDragging) return;
   e.preventDefault();
   currentX = e.touches[0].clientX;
-  
+
   // Begræns swipe feedback til maksimalt ét kort
   const carousel = document.querySelector("#game-carousel");
   const diffX = startX - currentX;
-  
+
   // Samme centrering som updateCarouselPosition
   const cardWidth = 180;
   const cardGap = 24;
   const totalCardWidth = cardWidth + cardGap;
   const containerWidth = carousel.parentElement.offsetWidth;
   const centerPosition = containerWidth / 2 - cardWidth / 2;
-  
-  let baseOffset = centerPosition - (currentCarouselIndex * totalCardWidth);
-  
+
+  let baseOffset = centerPosition - currentCarouselIndex * totalCardWidth;
+
   // Begræns drag til maksimalt 80% af et kort i hver retning
   const maxDrag = totalCardWidth * 0.8;
   let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
-  
+
   carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
 }
 
 function handleTouchEnd(e) {
   if (!isDragging) return;
   isDragging = false;
-  
+
   const carousel = document.querySelector("#game-carousel");
   carousel.classList.remove("dragging");
-  
+
   const diffX = startX - currentX;
   const threshold = 50; // Øget threshold for mere præcis control
-  
+
   // Kun tillad ét kort ad gangen - ingen multi-swipes
   if (Math.abs(diffX) > threshold && !isNavigating) {
     if (diffX > 0) {
@@ -1030,7 +1097,7 @@ function handleTouchEnd(e) {
     // Snap tilbage til current position hvis ikke nok swipe
     updateCarouselPosition();
   }
-  
+
   // Reset touch tracking
   startX = 0;
   currentX = 0;
@@ -1046,36 +1113,36 @@ function handleMouseStart(e) {
 function handleMouseMove(e) {
   if (!isDragging) return;
   currentX = e.clientX;
-  
+
   // Begræns mouse feedback samme som touch
   const carousel = document.querySelector("#game-carousel");
   const diffX = startX - currentX;
-  
+
   const cardWidth = 180;
   const cardGap = 24;
   const totalCardWidth = cardWidth + cardGap;
   const containerWidth = carousel.parentElement.offsetWidth;
   const centerPosition = containerWidth / 2 - cardWidth / 2;
-  
-  let baseOffset = centerPosition - (currentCarouselIndex * totalCardWidth);
-  
+
+  let baseOffset = centerPosition - currentCarouselIndex * totalCardWidth;
+
   // Begræns drag til maksimalt 80% af et kort i hver retning
   const maxDrag = totalCardWidth * 0.8;
   let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
-  
+
   carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
 }
 
 function handleMouseEnd(e) {
   if (!isDragging) return;
   isDragging = false;
-  
+
   const carousel = document.querySelector("#game-carousel");
   carousel.classList.remove("dragging");
-  
+
   const diffX = startX - currentX;
   const threshold = 50; // Samme threshold som touch
-  
+
   // Kun tillad ét kort ad gangen - ingen multi-drags
   if (Math.abs(diffX) > threshold && !isNavigating) {
     if (diffX > 0) {
@@ -1089,7 +1156,7 @@ function handleMouseEnd(e) {
     // Snap tilbage til current position hvis ikke nok drag
     updateCarouselPosition();
   }
-  
+
   // Reset mouse tracking
   startX = 0;
   currentX = 0;
@@ -1099,9 +1166,9 @@ function handleMouseEnd(e) {
 function addCarouselClickEvents() {
   const carouselCards = document.querySelectorAll("#game-carousel .game-card");
   carouselCards.forEach((card, index) => {
-    card.addEventListener("click", function(e) {
+    card.addEventListener("click", function (e) {
       if (isDragging) return; // Ignorer click hvis vi swiper
-      
+
       if (index === currentCarouselIndex) {
         // Hvis center kort klikkes, åbn modal
         const originalIndex = parseInt(card.dataset.originalIndex);

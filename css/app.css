@@ -215,14 +215,15 @@ p {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--bg-card);
+  background: var(--primary);
   border-top: 1px solid rgba(172, 198, 201, 0.2);
   box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(20px) saturate(180%);
   z-index: 1000;
   display: flex;
-  justify-content: center;
-  padding: 0.5rem 0 calc(0.5rem + env(safe-area-inset-bottom)); /* Safe area for iPhone notch */
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 10px calc(0.5rem + env(safe-area-inset-bottom)) 10px; /* 10px yderste margin */
 }
 
 .bottom-nav-item {
@@ -230,13 +231,13 @@ p {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 0.5rem 1.5rem;
+  padding: 0.5rem 1rem;
   text-decoration: none;
   color: var(--text-light);
   transition: var(--transition);
   border-radius: 0.75rem;
-  margin: 0 0.5rem;
-  min-width: 80px;
+  flex: 1;
+  text-align: center;
 }
 
 .bottom-nav-icon {
