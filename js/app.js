@@ -10,33 +10,132 @@ let allGames = [];
 function initApp() {
   console.log("initApp: app.js is running 🎉");
   getGames();
+  
+  // Header søgefelt og filtre
   document
-    .querySelector("#search-input")
-    .addEventListener("input", filterGames); // ← Ændret!
+    .querySelector("#header-search-input")
+    .addEventListener("input", filterGames);
   document
-    .querySelector("#genre-select")
-    .addEventListener("change", filterGames); // ← Ny!
+    .querySelector("#header-genre-select")
+    .addEventListener("change", filterGames);
   document
-    .querySelector("#sort-select")
+    .querySelector("#header-sort-select")
     .addEventListener("change", filterGames);
 
-  // NYE: Kun playtime felter
-  document.querySelector("#playtime-from").addEventListener("input", filterGames);
-  document.querySelector("#playtime-to").addEventListener("input", filterGames);
+  // Playtime felter
+  document.querySelector("#header-playtime-from").addEventListener("input", filterGames);
+  document.querySelector("#header-playtime-to").addEventListener("input", filterGames);
 
-  // Rating field event listeners // Tilføj EFTER år listeners
-  document.querySelector("#rating-from").addEventListener("input", filterGames);
-  document.querySelector("#rating-to").addEventListener("input", filterGames);
+  // Rating felter
+  document.querySelector("#header-rating-from").addEventListener("input", filterGames);
+  document.querySelector("#header-rating-to").addEventListener("input", filterGames);
 
-  // Clear filters knap - TILFØJ TIL SIDST
-  document
-    .querySelector("#clear-filters")
-    .addEventListener("click", clearAllFilters);
-
-  // Location dropdown event listener
+  // Location dropdown (nu udenfor filter panel)
   document
     .querySelector("#location-select")
     .addEventListener("change", filterGames);
+
+  // Clear filters knap
+  document
+    .querySelector("#header-clear-filters")
+    .addEventListener("click", clearAllFilters);
+
+  // Filter panel toggle functionality
+  initFilterPanel();
+}
+
+// Filter panel functionality
+function initFilterPanel() {
+  const filterToggle = document.querySelector("#filter-toggle");
+  const filterPanel = document.querySelector("#filter-panel");
+  const filterClose = document.querySelector("#filter-close");
+  const filterBadge = document.querySelector("#filter-badge");
+
+  // Toggle filter panel
+  filterToggle.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const isOpen = filterPanel.classList.contains("open");
+    
+    if (isOpen) {
+      closeFilterPanel();
+    } else {
+      openFilterPanel();
+    }
+  });
+
+  // Close filter panel
+  filterClose.addEventListener("click", closeFilterPanel);
+
+  // Close when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!filterPanel.contains(e.target) && !filterToggle.contains(e.target)) {
+      closeFilterPanel();
+    }
+  });
+
+  // Prevent panel close when clicking inside
+  filterPanel.addEventListener("click", (e) => {
+    e.stopPropagation();
+  });
+
+  function openFilterPanel() {
+    filterPanel.classList.add("open");
+    filterToggle.classList.add("active");
+  }
+
+  function closeFilterPanel() {
+    filterPanel.classList.remove("open");
+    filterToggle.classList.remove("active");
+  }
+
+  // Update filter badge count
+  function updateFilterBadge() {
+    let activeFilters = 0;
+    
+    // Check search
+    if (document.querySelector("#header-search-input").value.trim()) activeFilters++;
+    
+    // Check dropdowns (location er nu separat)
+    if (document.querySelector("#location-select").value !== "all") activeFilters++;
+    if (document.querySelector("#header-genre-select").value !== "all") activeFilters++;
+    if (document.querySelector("#header-sort-select").value !== "none") activeFilters++;
+    
+    // Check number inputs
+    if (document.querySelector("#header-playtime-from").value) activeFilters++;
+    if (document.querySelector("#header-playtime-to").value) activeFilters++;
+    if (document.querySelector("#header-rating-from").value) activeFilters++;
+    if (document.querySelector("#header-rating-to").value) activeFilters++;
+    
+    if (activeFilters > 0) {
+      filterBadge.style.display = "flex";
+      filterBadge.textContent = activeFilters;
+    } else {
+      filterBadge.style.display = "none";
+    }
+  }
+
+  // Add event listeners to all filter inputs to update badge
+  const filterInputs = [
+    "#header-search-input",
+    "#location-select", // Nu separat element
+    "#header-genre-select",
+    "#header-sort-select",
+    "#header-playtime-from",
+    "#header-playtime-to", 
+    "#header-rating-from",
+    "#header-rating-to"
+  ];
+
+  filterInputs.forEach(selector => {
+    const element = document.querySelector(selector);
+    if (element) {
+      element.addEventListener("input", updateFilterBadge);
+      element.addEventListener("change", updateFilterBadge);
+    }
+  });
+
+  // Expose updateFilterBadge globally so clearAllFilters can use it
+  window.updateFilterBadge = updateFilterBadge;
 }
 
 // ===== DATA HENTNING =====
@@ -111,7 +210,7 @@ function displayGame(game) {
 
 // Dropdownmenu med genre
 function populateGenreDropdown() {
-  const genreSelect = document.querySelector("#genre-select");
+  const genreSelect = document.querySelector("#header-genre-select");
   const genres = new Set();
 
   for (const game of allGames) {
@@ -156,18 +255,18 @@ function filterGames() {
   // Filtrer games baseret på søgning, genre, playtime, ovs.
   // OBS: game.genre skal sammenlignes med === (ikke .includes())
 
-  const searchValue = document.querySelector("#search-input").value.toLowerCase();
-  const genreValue = document.querySelector("#genre-select").value;
-  const sortValue = document.querySelector("#sort-select").value;
+  const searchValue = document.querySelector("#header-search-input").value.toLowerCase();
+  const genreValue = document.querySelector("#header-genre-select").value;
+  const sortValue = document.querySelector("#header-sort-select").value;
   const locationValue = document.querySelector("#location-select").value;
 
-  // NYE playtime variable - TILFØJ KUN DISSE TO LINJER
-  const playtimeFrom = Number(document.querySelector("#playtime-from").value) || 0;
-  const playtimeTo = Number(document.querySelector("#playtime-to").value) || 9999;
+  // Playtime variable - fra header
+  const playtimeFrom = Number(document.querySelector("#header-playtime-from").value) || 0;
+  const playtimeTo = Number(document.querySelector("#header-playtime-to").value) || 9999;
 
-  // NYE rating variable
-  const ratingFrom = Number(document.querySelector("#rating-from").value) || 0;
-  const ratingTo = Number(document.querySelector("#rating-to").value) || 10;
+  // Rating variable - fra header
+  const ratingFrom = Number(document.querySelector("#header-rating-from").value) || 0;
+  const ratingTo = Number(document.querySelector("#header-rating-to").value) || 10;
 
   console.log("🔄 Filtrerer games...");
 
@@ -232,16 +331,22 @@ function filterGames() {
 function clearAllFilters() {
   console.log("🗑️ Rydder alle filtre");
 
-  // Ryd søgning og dropdown felter
-  document.querySelector("#search-input").value = "";
-  document.querySelector("#genre-select").value = "all";
-  document.querySelector("#sort-select").value = "none";
+  // Ryd søgning og dropdown felter - header version
+  document.querySelector("#header-search-input").value = "";
+  document.querySelector("#header-genre-select").value = "all";
+  document.querySelector("#location-select").value = "all";
+  document.querySelector("#header-sort-select").value = "none";
 
-  // Ryd de nye range felter
-  document.querySelector("#playtime-from").value = "";
-  document.querySelector("#playtime-to").value = "";
-  document.querySelector("#rating-from").value = "";
-  document.querySelector("#rating-to").value = "";
+  // Ryd de nye range felter - header version
+  document.querySelector("#header-playtime-from").value = "";
+  document.querySelector("#header-playtime-to").value = "";
+  document.querySelector("#header-rating-from").value = "";
+  document.querySelector("#header-rating-to").value = "";
+
+  // Opdater filter badge
+  if (window.updateFilterBadge) {
+    window.updateFilterBadge();
+  }
 
   // Kør filtrering igen (viser alle spil)
   filterGames();

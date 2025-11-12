@@ -76,8 +76,8 @@ body {
   background-image: url('../Images/Baggrund\ -\ kodning\(mini\).svg');
   background-size: cover;
   background-position: center;
-  background-repeat: repeat;
-  background-attachment: scroll;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100vh;
   display: flex;
@@ -268,8 +268,8 @@ header {
   border-bottom: 1px solid rgba(172, 198, 201, 0.2);
   color: var(--text);
   padding: 1rem 0;
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
   position: fixed;
   top: 0;
@@ -283,32 +283,315 @@ header {
 .logo {
   height: 80px;
   margin-left: 1rem;
+  justify-self: start;
 }
 
-/* Location filter i header */
-.location-filter {
-  margin-right: 2rem;
+/* Location dropdown i midten */
+.header-location {
+  justify-self: center;
 }
 
-.location-filter select {
-  padding: 0.5rem 1rem;
+.header-location select {
+  padding: 0.75rem 1rem;
   border: 1px solid var(--secondary);
   border-radius: var(--radius);
   background: var(--bg);
   color: var(--text);
-  font-size: 0.9rem;
+  font-size: 1rem;
   cursor: pointer;
   transition: var(--transition);
+  min-width: 180px;
 }
 
-.location-filter select:hover {
+.header-location select:hover {
   border-color: var(--primary);
 }
 
-.location-filter select:focus {
+.header-location select:focus {
   outline: none;
   border-color: var(--primary);
   box-shadow: 0 0 0 2px rgba(199, 2, 0, 0.1);
+}
+
+/* Header controls (search + filter) i højre side */
+.header-controls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-right: 2rem;
+  justify-self: end;
+}
+
+.header-search {
+  position: relative;
+}
+
+.header-search input {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--secondary);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 1rem;
+  width: 300px;
+  transition: var(--transition);
+}
+
+.header-search input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(199, 2, 0, 0.1);
+}
+
+/* Filter toggle button */
+.filter-toggle {
+  position: relative;
+  background: var(--bg);
+  border: 1px solid var(--secondary);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  cursor: pointer;
+  transition: var(--transition);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+.filter-toggle:hover {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.filter-toggle.active {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Filter badge */
+.filter-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--error);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* Filter panel dropdown */
+.filter-panel {
+  position: absolute;
+  top: 100%;
+  right: 2rem;
+  background: var(--bg);
+  border: 1px solid var(--secondary);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  padding: 1.5rem;
+  min-width: 400px;
+  max-height: 80vh;
+  overflow-y: auto;
+  z-index: 1001;
+  display: none;
+}
+
+.filter-panel.open {
+  display: block;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.filter-panel h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text);
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.filter-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.filter-row label {
+  font-weight: 500;
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.filter-row select,
+.filter-row input {
+  padding: 0.5rem;
+  border: 1px solid var(--secondary);
+  border-radius: calc(var(--radius) * 0.5);
+  background: var(--bg-card);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.filter-row select:focus,
+.filter-row input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.range-inputs input {
+  flex: 1;
+}
+
+.range-inputs span {
+  color: var(--text-light);
+  font-size: 0.9rem;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--secondary);
+}
+
+.clear-btn,
+.close-btn {
+  padding: 0.5rem 1rem;
+  border-radius: calc(var(--radius) * 0.5);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: var(--transition);
+  border: 1px solid;
+}
+
+.clear-btn {
+  background: transparent;
+  color: var(--error);
+  border-color: var(--error);
+}
+
+.clear-btn:hover {
+  background: var(--error);
+  color: white;
+}
+
+.close-btn {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+.close-btn:hover {
+  background: transparent;
+  color: var(--primary);
+}
+
+/* Responsive header */
+@media (max-width: 768px) {
+  header {
+    grid-template-columns: auto 1fr auto;
+    gap: 0.5rem;
+    padding: 0.75rem 0;
+  }
+  
+  .logo {
+    height: 60px;
+    margin-left: 0.5rem;
+  }
+  
+  .header-location {
+    justify-self: center;
+  }
+  
+  .header-location select {
+    min-width: 120px;
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+  }
+  
+  .header-controls {
+    gap: 0.5rem;
+    margin-right: 0.5rem;
+  }
+  
+  .header-search input {
+    width: 120px;
+    font-size: 0.9rem;
+  }
+  
+  .filter-panel {
+    right: 0.5rem;
+    left: 0.5rem;
+    min-width: auto;
+    max-width: none;
+  }
+  
+  .filter-actions {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  header {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto;
+    gap: 0.5rem;
+    text-align: center;
+  }
+  
+  .logo {
+    justify-self: center;
+    margin: 0;
+    height: 50px;
+  }
+  
+  .header-location {
+    grid-column: 1;
+    grid-row: 2;
+    justify-self: center;
+  }
+  
+  .header-controls {
+    position: absolute;
+    right: 1rem;
+    top: 0.75rem;
+    margin: 0;
+  }
+  
+  .header-search input {
+    width: 100px;
+  }
+  
+  .filter-panel {
+    padding: 1rem;
+  }
 }
 
 
@@ -594,6 +877,7 @@ dialog#game-dialog::backdrop {
   #dialog-content .game-rating {
     justify-content: center;
   }
+
 }
 
 .game-description {
