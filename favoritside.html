@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <html lang="da">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Games App</title>
-    <link rel="stylesheet" href="css/app.css" />
-  </head>
-
-  <body>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mine Favoritter - Games App</title>
+    <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+    <!-- Header -->
     <header>
-      <img src="Images/Logo spilcafeen.png" alt="Games App Logo" class="logo"/>
-      
-      <!-- Location filter i midten -->
-      <div class="header-location">
-        <select id="location-select" class="location-dropdown">
-          <option value="all">Alle lokationer</option>
-        </select>
-      </div>
-      
-      <!-- Header søgefelt og filter -->
-      <div class="header-controls">
+        <img src="Images/Logo spilcafeen.png" alt="Games App Logo" class="logo">
+        
+        <!-- Location dropdown (now main header element) -->
+        <div class="header-location">
+            <select id="location-select">
+                <option value="all">Alle Lokationer</option>
+            </select>
+        </div>
+        
+        <!-- Header controls (search + filter) -->
+            <div class="header-controls">
         <div class="header-search">
           <input type="search" id="header-search-input" placeholder="Søg efter spil...">
         </div>
@@ -29,7 +29,7 @@
           <span class="filter-badge" id="filter-badge" style="display: none;">0</span>
         </button>
       </div>
-
+            
       <!-- Filter dropdown panel -->
       <div class="filter-panel" id="filter-panel">
         <div class="filter-panel-content">
@@ -102,71 +102,49 @@
         </div>
       </div>
     </header>
+    
 
+    <!-- Main content -->
     <main>
-        
-     <section>
-        <h1>Mest populære</h1>
-     </section>
+        <!-- Page header -->
+        <section>
+            <div class="games-header">
+                <h1 id="favorites-count">Mine Favoritter (0 spil)</h1>
+            </div>
+        </section>
 
-     <!-- Game karrussel -->
-     <div class="carousel-container">
-       <section id="game-carousel">
-         
-       </section>
-     </div>
-        
-       <section>
-        <div class="games-header">
-          <h1>Alle spil</h1>
-          <div class="sort-controls">
-            <select id="main-sort-select">
-              <option value="all">Sortér efter</option>
-              <option value="title">Titel (A-Å)</option>
-              <option value="title2">Titel (Å-A)</option>
-              <option value="rating">Mest populære</option>
-            </select>
-          </div>
+        <!-- No favorites message (hidden initially) -->
+        <div class="no-favorites" id="no-favorites" style="display: none;">
+            <h3>Du har ingen favoritter endnu</h3>
+            <p>Klik på ❤️ ikonerne på spillene for at tilføje dem til dine favoritter!</p>
+            <a href="index.html" class="bottom-nav-item">Se alle spil</a>
         </div>
-     </section>
 
-      <!-- Active filters display -->
-      <section class="active-filters-section" id="active-filters-section" style="display: none;">
-        <div class="active-filters-container">
-          <div class="active-filters-list" id="active-filters-list">
-            <!-- Active filter tags will be dynamically added here -->
-          </div>
-        </div>
-      </section>
-
-      <!-- Game List -->
-      <section id="game-list">
-      </section>
+        <!-- Game list -->
+        <section id="game-list" class="game-grid">
+        </section>
     </main>
 
-    
- <!-- Game Modal -->
+    <!-- Game Modal -->
     <dialog id="game-dialog">
-      <form method="dialog">
-        <button id="close-dialog" aria-label="Close">✕</button>
-        <div id="dialog-content">
-          <!-- Game details will be injected here via JavaScript -->
-        </div>
-      </form>
+        <form method="dialog">
+            <button id="close-dialog" aria-label="Close">✕</button>
+            <div id="dialog-content">
+                <!-- Game details will be injected here via JavaScript -->
+            </div>
+        </form>
     </dialog>
-
 
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
-        <a href="index.html" class="bottom-nav-item bottom-nav-active">
+        <a href="index.html" class="bottom-nav-item">
             <div class="bottom-nav-icon">🏠</div>
         </a>
-        <a href="favoritside.html" class="bottom-nav-item">
+        <a href="favoritside.html" class="bottom-nav-item bottom-nav-active">
             <div class="bottom-nav-icon">❤️</div>
         </a>
     </nav>
 
-
-    <script src="js/app.js"></script>
-  </body>
+    <script src="js/favoritside.js"></script>
+</body>
 </html>
