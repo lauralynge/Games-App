@@ -420,14 +420,14 @@ function filterGames() {
   }
 
   // Rating variable - fra header
-  const ratingFrom =
-    Number(document.querySelector("#header-rating-from").value) || 0;
-  const ratingTo =
-    Number(document.querySelector("#header-rating-to").value) || 10;
+  const ratingFromInput = document.querySelector("#header-rating-from").value;
+  const ratingToInput = document.querySelector("#header-rating-to").value;
+  const ratingFrom = Number(ratingFromInput) || 0;
+  const ratingTo = Number(ratingToInput) || 5;
 
   // Antal spillere variable - fra header
   const playersFrom =
-    Number(document.querySelector("#header-players-from").value) || 2;
+    Number(document.querySelector("#header-players-from").value) || 0;
 
   // Sværhedsgrad variable - fra header
   const difficultyValue = document.querySelector(
@@ -473,9 +473,11 @@ function filterGames() {
   }
 
   // TRIN 5: Rating filter
-  filteredGames = filteredGames.filter((game) => {
-    return game.rating >= ratingFrom && game.rating <= ratingTo;
-  });
+  if (ratingFromInput || ratingToInput) {
+    filteredGames = filteredGames.filter((game) => {
+      return game.rating >= ratingFrom && game.rating <= ratingTo;
+    });
+  }
 
   // TRIN 6: Antal spillere filter
   if (playersFrom > 0) {

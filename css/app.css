@@ -271,9 +271,9 @@ p {
   transform: scale(1.1);
 }
 
-/* =====================
-   NO FAVORITES MESSAGE
-   ===================== */
+/* ===========================================
+   NO FAVORITES MESSAGE + NO PROFILE MESSAGAE
+   =========================================== */
 .no-favorites {
   text-align: center;
   padding: 4rem 2rem;
@@ -295,6 +295,27 @@ p {
   margin-bottom: 2rem;
   line-height: 1.6;
 }
+
+.no-profile {
+  text-align: center;
+  padding: 4rem 2rem;
+  background: var(--bg-card);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin: 2rem 0;
+}
+.no-profile h3 {
+  color: var(--text);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+.no-profile p {
+  color: var(--text-light);
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  line-height: 1.6;
+}
+
 
 /* =====================
    FILTERBAR (SØG/SORT/FILTER/ÅR-FILTER/RATING-FILTER/RYD-KNAP)
