@@ -71,10 +71,13 @@ function initFavoritesApp() {
 async function getFavoriteGames() {
   try {
     // Indlæs alle spil først
-    const response = await fetch("gamedata.json");
+    console.log("🌐 Henter alle games fra JSON...");
+    const response = await fetch("https://raw.githubusercontent.com/cederdorff/race/refs/heads/master/data/games.json"
+  );
     allGames = await response.json();
-    console.log(`📦 Indlæste ${allGames.length} spil fra JSON`);
-    
+    console.log(`📊 JSON data modtaget: ${allGames.length} games`);
+
+    // HVAD GØR DE NÆSTE PAR LINJER ??
     // Hent favorit titler fra localStorage
     const favoriteTitles = getFavorites();
     console.log(`❤️ Fandt ${favoriteTitles.length} favoritter i localStorage`);
@@ -90,6 +93,8 @@ async function getFavoriteGames() {
     console.error("❌ Fejl ved indlæsning af games:", error);
   }
 }
+
+
 
 // ===== VISNING =====
 function displayFavorites(games) {

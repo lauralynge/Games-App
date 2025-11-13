@@ -9,24 +9,33 @@
 <body>
     <!-- Header -->
     <header>
-        <img src="Images/Logo spilcafeen.png" alt="Games App Logo" class="logo">
-        
-        <!-- Location dropdown (now main header element) -->
-        <div class="header-location">
-            <select id="location-select">
-                <option value="all">Alle Lokationer</option>
-            </select>
-        </div>
-        
-        <!-- Header controls (search + filter) -->
-            <div class="header-controls">
+      <a href="index.html">
+        <img src="Images/Logo spilcafeen.png" alt="Games App Logo" class="logo" />
+      </a>
+
+      <div class="header-location">
+        <select id="location-select" class="location-dropdown">
+          <option value="all">Alle lokationer</option>
+        </select>
+      </div>
+
+      <div class="header-controls">
         <div class="header-search">
-          <input type="search" id="header-search-input" placeholder="Søg efter spil...">
+          <input
+            type="text"
+            id="header-search-input"
+            placeholder="Søg spil..."
+          />
         </div>
-        
-        <button class="filter-toggle" id="filter-toggle" aria-label="Åbn filtre">
-          <img src="Images/Filtrerings ikon.png" alt="Filter" class="filter-icon">
-          <span class="filter-badge" id="filter-badge" style="display: none;">0</span>
+        <button
+        id="filter-toggle"
+          class="filter-toggle"
+          aria-label="Åbn filtre"
+        >
+          <img src="Images/Filtrerings ikon.png" alt="Filter" class="filter-icon" />
+          <span id="filter-badge" class="filter-badge" style="display: none"
+            >0</span
+          >
         </button>
       </div>
             
@@ -138,8 +147,7 @@
     <!-- Bottom Navigation Bar -->
     <nav class="bottom-nav">
       <a href="index.html" class="bottom-nav-item bottom-nav-active">
-        <div class="bottom-nav-icon">
-          <img src="Images/hus.svg" alt="Hjem" />
+       <img src="Images/hus.svg" alt="Hjem" />
         </div>
       </a>
       <a href="favoritside.html" class="bottom-nav-item">
