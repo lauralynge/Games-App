@@ -13,36 +13,27 @@ function initApp() {
 
   // ===== HEADER SØGNING OG FILTRERING =====
   // Søgefelt i header - filtrer på spilnavn når brugeren skriver
-  document
-    .querySelector("#header-search-input")
-    .addEventListener("input", filterGames);
+  document.querySelector("#header-search-input").addEventListener("input", filterGames);
 
   // Genre/kategori dropdown i header - filtrer når bruger vælger kategori
-  document
-    .querySelector("#header-genre-select")
-    .addEventListener("change", filterGames);
+  document.querySelector("#header-genre-select").addEventListener("change", filterGames);
 
   // Sort dropdown i header - sortér spil når bruger ændrer sortering
-  document
-    .querySelector("#header-sort-select")
-    .addEventListener("change", filterGames);
+  document.querySelector("#header-sort-select").addEventListener("change", filterGames);
 
   // ===== MAIN SORTERING =====
   // Sort dropdown ved siden af "Alle spil" overskriften - alternativ til header sort
-  document
-    .querySelector("#main-sort-select")
-    .addEventListener("change", filterGames);
+  document.querySelector("#main-sort-select").addEventListener("change", filterGames);
+    
 
   // ===== SPILLETID RANGE FILTRERING =====
   // "Fra" spilletid felt - auto-udfyldning af "til" felt
-  document
-    .querySelector("#header-playtime-from")
-    .addEventListener("input", function () {
-      const fromValue = this.value; // Hent den indtastede "fra" værdi
-      const toField = document.querySelector("#header-playtime-to"); // Find "til" feltet
+  document.querySelector("#header-playtime-from").addEventListener("input", function () {
+    const fromValue = this.value; // Hent den indtastede "fra" værdi
+    const toField = document.querySelector("#header-playtime-to"); // Find "til" feltet
 
-      // AUTOMATISK BEREGNING: Hver gang "Fra" ændres, sæt "Til" til +15 minutter
-      // Eksempel: Fra=30 → Til=45, Fra=60 → Til=75
+  // AUTOMATISK BEREGNING: Hver gang "Fra" ændres, sæt "Til" til +15 minutter
+  // Eksempel: Fra=30 → Til=45, Fra=60 → Til=75
       if (fromValue) {
         toField.value = parseInt(fromValue) + 15; // Konverterer til tal og læg 15 til
       } else {
@@ -54,22 +45,18 @@ function initApp() {
     });
 
   // "Til" spilletid felt - manuel justering af spilletid range
-  document
-    .querySelector("#header-playtime-to")
-    .addEventListener("input", filterGames);
+  document.querySelector("#header-playtime-to").addEventListener("input", filterGames);
 
   // ===== RATING FELTER - AVANCERET SYNKRONISERING =====
   // Rating "Fra" felt - tillader bruger fleksibilitet men sikrer logiske værdier
-  document
-    .querySelector("#header-rating-from")
-    .addEventListener("input", function () {
-      const fromValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
-      const toField = document.querySelector("#header-rating-to");
-      const toValue = parseInt(toField.value); // Hent nuværende "Til" værdi
+  document.querySelector("#header-rating-from").addEventListener("input", function () {
+    const fromValue = parseInt(this.value); // Konverter til tal (NaN(Not a number) hvis tomt)
+    const toField = document.querySelector("#header-rating-to");
+    const toValue = parseInt(toField.value); // Hent nuværende "Til" værdi
 
-      // SCENARIE 1: Bruger ændrer "Fra" og "Til" bliver for lav
-      // Eksempel: Fra=2→5, Til=3 → Fra=5, Til=5 (auto-justering)
-      if (fromValue && toValue && toValue < fromValue) {
+  // SCENARIE 1: Bruger ændrer "Fra" og "Til" bliver for lav
+  // Eksempel: Fra=2→5, Til=3 → Fra=5, Til=5 (auto-justering)
+    if (fromValue && toValue && toValue < fromValue) {
         toField.value = fromValue; // Løft "Til" til samme niveau som "Fra"
         console.log(
           `📊 Rating auto-justering: Til løftet fra ${toValue} til ${fromValue}`
