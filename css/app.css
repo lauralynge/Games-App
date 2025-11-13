@@ -1274,23 +1274,20 @@ dialog#game-dialog::backdrop {
 
 .carousel-container {
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;  
   margin: 2rem 0;
-  padding: 2rem 0;
-  /* Kontrolleret bredde for symmetrisk visning */
+  padding: 4rem 0;
   max-width: 100vw;
 }
 
 #game-carousel {
   display: flex;
   gap: 1.5rem;
-  padding: 0 2rem;
-  transition: transform 0.5s ease;
-  align-items: center;
-  justify-content: flex-start;
+  transition: transform 0.4s ease-in-out;
+  align-items: flex-end;
   cursor: grab;
   user-select: none;
-  /* Sikrer konsistent spacing */
   width: max-content;
 }
 
@@ -1300,40 +1297,6 @@ dialog#game-dialog::backdrop {
 
 #game-carousel.dragging {
   transition: none;
-}
-
-.carousel-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  background: rgba(255, 255, 255, 0.9);
-  border: 2px solid var(--primary);
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  z-index: 10;
-  transition: all 0.3s ease;
-  font-size: 1.5rem;
-  font-weight: bold;
-  color: var(--primary);
-}
-
-.carousel-nav:hover {
-  background: var(--primary);
-  color: white;
-  transform: translateY(-50%) scale(1.1);
-}
-
-.carousel-nav.prev {
-  left: 1rem;
-}
-
-.carousel-nav.next {
-  right: 1rem;
 }
 
 #game-carousel .game-card {
@@ -1350,7 +1313,6 @@ dialog#game-dialog::backdrop {
   position: relative;
 }
 
-/* Overlay for mørk effekt på hele kortet */
 #game-carousel .game-card::before {
   content: '';
   position: absolute;
@@ -1363,14 +1325,11 @@ dialog#game-dialog::backdrop {
   transition: opacity 0.5s ease;
 }
 
-/* Fokus på midterste kort - symmetrisk spacing */
 #game-carousel .game-card.center {
   transform: scale(1.2);
-  box-shadow: var(--shadow-lg);
   z-index: 2;
   min-width: 220px;
   max-width: 220px;
-  /* Ingen margin for at sikre symmetrisk layout */
 }
 
 #game-carousel .game-card.center::before {
@@ -1387,7 +1346,7 @@ dialog#game-dialog::backdrop {
 
 #game-carousel .game-card:hover {
   transform: scale(1.1);
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 #game-carousel .game-card.center:hover {
@@ -1425,7 +1384,6 @@ dialog#game-dialog::backdrop {
   color: var(--text);
   text-shadow: none;
 }
-
 
 /* =================================
    SPILOVERSIGT STYLING (ALLE SPIL–OVERSIGT)
