@@ -272,6 +272,7 @@ async function getGames() {
   LocationDropdown(); // Udfyld dropdown med locations <-----
   displayGames(allGames);
   populateCarousel(); // Tilføj top-rated games til karrussel
+  populateScrollCarousel(); // Tilføj nyere games til scroll-karrussel
   updateActiveFiltersDisplay(); // Initialiser aktive filtre display
 }
 
@@ -844,328 +845,560 @@ function showGameModal(game) {
   });
 }
 
-// ==== KARUSSEL ====
+// ===== KARRUSSEL SYSTEM - TRANSFORM-BASERET MED INFINITE SCROLL =====
+// Dette er hovedkarrussel systemet der bruger CSS transforms til positioning
+// og skaber uendelig scroll ved at duplikere spillene i et 3x array
 
-let currentCarouselIndex = 0;
-let carouselGames = [];
-let startX = 0;
-let currentX = 0;
-let isDragging = false;
+// ===== GLOBALE KARRUSSEL VARIABLER =====
+let currentCarouselIndex = 0; // Hvilket kort der er aktivt/center lige nu (starter ved index 10)
+let carouselGames = []; // Array med de 10 bedste spil til karrussel (originale data)
+let startX = 0; // Start position for touch/swipe events (X koordinat)
+let currentX = 0; // Nuværende position under swipe/drag
+let isDragging = false; // Flag der tracker om brugeren trækker i karrussel
 
-// Populate karrussel med top-rated games (infinite loop)
+// ===== HOVEDFUNKTION: OPRET OG UDFYLD KARRUSSEL =====
+// Denne funktion henter data, opretter karrussel struktur og initialiserer alt
 function populateCarousel() {
-  // Sortér games efter rating og tag de 10 bedste
+  console.log("🎠 Starter karrussel initialisering...");
+  
+  // ===== HENT OG SORTÉR SPIL DATA =====
+  // Sortér alle spil efter rating (højeste først) og tag kun de 10 bedste
   carouselGames = allGames.sort((a, b) => b.rating - a.rating).slice(0, 10);
+  console.log(`📊 Karrussel spil udvalgt: ${carouselGames.length} top-rated games`);
 
-  // Ryd karrussel
+  // ===== RYD EKSISTERENDE KARRUSSEL INDHOLD =====
+  // Sørg for at karrussel er tom før vi tilføjer nyt indhold
   document.querySelector("#game-carousel").innerHTML = "";
 
-  // Tilføj games til karrussel med duplicates for infinite effect
+  // ===== OPRET INFINITE SCROLL STRUKTUR =====
+  // Kalder funktion der duplikerer spillene til seamless infinite scroll
   createInfiniteCarousel();
 
-  // Start i midten af den udvidede array
-  currentCarouselIndex = carouselGames.length;
+  // ===== SÆT START POSITION =====
+  // Start i midten af den udvidede array (index 10 af 30 kort total)
+  // Dette giver plads til at scrolle både bagud og fremad
+  currentCarouselIndex = carouselGames.length; // = 10
+  console.log(`🎯 Karrussel startposition: index ${currentCarouselIndex}`);
 
-  // Tilføj click events til karrussel cards
-  addCarouselClickEvents();
+  // ===== TILFØJ INTERAKTIVITET =====
+  addCarouselClickEvents(); // Klik events til kort (modal + navigation)
+  addSwipeEvents(); // Touch/swipe events til mobile/desktop navigation
 
-  // Tilføj swipe events
-  addSwipeEvents();
-
-  // Sæt initial fokus
+  // ===== VIS INITIAL STATE =====
+  // Positionér karrussel og vis center kort med korrekt styling
   updateCarouselPosition();
+  console.log("✅ Karrussel fuldt initialiseret og klar til brug");
 }
 
-// Opret uendelig karrussel med duplicate kort
+// ===== INFINITE SCROLL ARKITEKTUR - TRIPLE ARRAY SYSTEM =====
+// Denne funktion skaber illusionen af uendelig scroll ved at duplikere spillene
+// Struktur: [kopi1 (0-9), original (10-19), kopi2 (20-29)] = 30 kort total
 function createInfiniteCarousel() {
+  console.log("🔄 Opbygger infinite scroll struktur...");
+  
   const carousel = document.querySelector("#game-carousel");
 
-  // Opret extended array: [copies, original, copies]
+  // ===== OPRET EXTENDED ARRAY MED TRIPLE KOPI SYSTEM =====
+  // Dette er kernen i infinite scroll - vi tripler spillene for seamless looping
   const extendedGames = [
-    ...carouselGames, // Copies til venstre
-    ...carouselGames, // Original games
-    ...carouselGames, // Copies til højre
+    ...carouselGames, // FØRSTE KOPI (index 0-9)   → bruges til reset når vi går tilbage fra start
+    ...carouselGames, // ORIGINALE SPIL (index 10-19) → det brugeren starter med at se
+    ...carouselGames, // ANDEN KOPI (index 20-29)   → bruges til reset når vi når slutningen
   ];
 
-  // Tilføj alle kort til DOM
+  console.log(`🎮 Array struktur: ${carouselGames.length} originale → ${extendedGames.length} total kort`);
+  console.log("📍 Positioner: Kopi1(0-9) | Original(10-19) | Kopi2(20-29)");
+
+  // ===== GENERER HTML FOR ALLE KORT =====
+  // Loop gennem alle 30 kort og opret HTML elements
   for (let i = 0; i < extendedGames.length; i++) {
     const game = extendedGames[i];
+    
+    // ===== CALCULATE METADATA FOR INFINITE TRACKING =====
+    const originalIndex = i % carouselGames.length; // Finder hvilket originalt spil dette repræsenterer
+    
+    // ===== OPRET HTML STRUKTUR FOR ÉT KORT =====
     const gameHTML = `
-      <article class="game-card" data-index="${i}" data-original-index="${
-      i % carouselGames.length
-    }">
-          <img src="${game.image}" alt="Poster of ${
-      game.title
-    }" class="game-poster"/>
-      <div class="game-title">
-          <h3>${game.title}</h3>
-      </div>
+      <article class="game-card" data-index="${i}" data-original-index="${originalIndex}">
+          <img src="${game.image}" alt="Poster of ${game.title}" class="game-poster"/>
+          <div class="game-title">
+              <h3>${game.title}</h3>
+          </div>
       </article>
     `;
+    
+    // Tilføj HTML til DOM
     carousel.insertAdjacentHTML("beforeend", gameHTML);
   }
+  
+  console.log("🏗️ HTML struktur oprettet - alle kort tilføjet til DOM");
 }
 
-// Gå til specifik slide
+// ===== DIREKTE NAVIGATION TIL SPECIFIKT KORT =====
+// Denne funktion bruges når bruger klikker på et side-kort for at navigere direkte til det
 function goToSlide(index) {
+  console.log(`🎯 Navigerer direkte til kort index: ${index}`);
+  
+  // Opdater global position og beregn ny transformation
   currentCarouselIndex = index;
   updateCarouselPosition();
 }
 
-// Navigation state for at forhindre spam-clicks
-let isNavigating = false;
+// ===== NAVIGATION FLOW CONTROL =====
+// Dette flag forhindrer spam-navigation og sikrer smooth animations
+let isNavigating = false; // Låser navigation under animation for at forhindre konflikt
 
-// Næste slide (fixed infinite)
+// ===== FREMAD NAVIGATION MED INFINITE SCROLL RESET =====
+// Denne funktion håndterer navigation til næste kort og seamless reset
 function nextSlide() {
-  // Forhindre spam-swipes
-  if (isNavigating) return;
+  console.log("▶️ NextSlide kaldt");
+  
+  // ===== SPAM-CLICK BESKYTTELSE =====
+  // Hvis en animation allerede kører, ignorer nye klik
+  if (isNavigating) {
+    console.log("⏸️ Navigation blokeret - animation i gang");
+    return;
+  }
+  
+  // Lås navigation under denne operation
   isNavigating = true;
 
-  currentCarouselIndex++;
+  // ===== OPDATER POSITION =====
+  currentCarouselIndex++; // Gå til næste kort (f.eks. 10 → 11)
+  updateCarouselPosition(); // Beregn og anvend ny CSS transformation
 
-  updateCarouselPosition();
-
-  // Seamless reset når vi når enden af det andet sæt
-  if (currentCarouselIndex >= carouselGames.length * 2) {
+  // ===== INFINITE SCROLL RESET LOGIC =====
+  // Tjek om vi har nået grænsen for det andet sæt kort
+  const resetThreshold = carouselGames.length * 2; // = 20 (slutningen af andet sæt)
+  
+  if (currentCarouselIndex >= resetThreshold) {
+    console.log(`🔄 RESET TRIGGER: Index ${currentCarouselIndex} >= ${resetThreshold}`);
+    
+    // Vent på at den nuværende animation er færdig
     setTimeout(() => {
       const carousel = document.querySelector("#game-carousel");
+      
+      // ===== SEAMLESS RESET SEQUENCE =====
+      // 1. Fjern CSS transition for øjeblikkelig positionering
       carousel.style.transition = "none";
-      currentCarouselIndex = carouselGames.length;
+      
+      // 2. Spring tilbage til starten af andet sæt (index 10)
+      currentCarouselIndex = carouselGames.length; // = 10
       updateCarouselPosition();
+      
+      console.log(`✅ Reset til index ${currentCarouselIndex} - seamless loop completed`);
+      
+      // 3. Genaktiver smooth transitions og unlock navigation
       setTimeout(() => {
         carousel.style.transition = "transform 0.5s ease";
-        isNavigating = false; // Tillad næste navigation
-      }, 10);
-    }, 500);
+        isNavigating = false;
+        console.log("🔓 Navigation unlocked efter reset");
+      }, 10); // Kort delay for browser at processere stilændringer
+      
+    }, 500); // Vent på nuværende animation (matchende CSS transition duration)
+    
   } else {
-    // Normal navigation - tillad næste swipe efter transition
+    // ===== NORMAL NAVIGATION =====
+    // Ikke nær reset grænse, så bare unlock navigation efter standard delay
     setTimeout(() => {
       isNavigating = false;
+      console.log("🔓 Navigation unlocked efter normal fremgang");
     }, 300);
   }
 }
 
-// Forrige slide (fixed infinite)
+// ===== BAGUD NAVIGATION MED INFINITE SCROLL RESET =====
+// Denne funktion håndterer navigation til forrige kort og seamless reset
 function prevSlide() {
-  // Forhindre spam-swipes
-  if (isNavigating) return;
+  console.log("◀️ PrevSlide kaldt");
+  
+  // ===== SPAM-CLICK BESKYTTELSE =====
+  // Hvis en animation allerede kører, ignorer nye klik
+  if (isNavigating) {
+    console.log("⏸️ Navigation blokeret - animation i gang");
+    return;
+  }
+  
+  // Lås navigation under denne operation
   isNavigating = true;
 
-  currentCarouselIndex--;
+  // ===== OPDATER POSITION =====
+  currentCarouselIndex--; // Gå til forrige kort (f.eks. 10 → 9)
+  updateCarouselPosition(); // Beregn og anvend ny CSS transformation
 
-  updateCarouselPosition();
-
-  // Seamless reset når vi når starten af det første sæt
-  if (currentCarouselIndex < carouselGames.length) {
+  // ===== INFINITE SCROLL RESET LOGIC =====
+  // Tjek om vi har nået grænsen for det første sæt kort
+  const resetThreshold = carouselGames.length; // = 10 (starten af originale kort)
+  
+  if (currentCarouselIndex < resetThreshold) {
+    console.log(`🔄 RESET TRIGGER: Index ${currentCarouselIndex} < ${resetThreshold}`);
+    
+    // Vent på at den nuværende animation er færdig
     setTimeout(() => {
       const carousel = document.querySelector("#game-carousel");
+      
+      // ===== SEAMLESS RESET SEQUENCE =====
+      // 1. Fjern CSS transition for øjeblikkelig positionering
       carousel.style.transition = "none";
-      currentCarouselIndex = carouselGames.length * 2 - 1;
+      
+      // 2. Spring frem til slutningen af andet sæt (index 19)
+      currentCarouselIndex = (carouselGames.length * 2) - 1; // = 19
       updateCarouselPosition();
+      
+      console.log(`✅ Reset til index ${currentCarouselIndex} - seamless loop completed`);
+      
+      // 3. Genaktiver smooth transitions og unlock navigation
       setTimeout(() => {
         carousel.style.transition = "transform 0.5s ease";
-        isNavigating = false; // Tillad næste navigation
-      }, 10);
-    }, 500);
+        isNavigating = false;
+        console.log("🔓 Navigation unlocked efter reset");
+      }, 10); // Kort delay for browser at processere stilændringer
+      
+    }, 500); // Vent på nuværende animation (matchende CSS transition duration)
+    
   } else {
-    // Normal navigation - tillad næste swipe efter transition
+    // ===== NORMAL NAVIGATION =====
+    // Ikke nær reset grænse, så bare unlock navigation efter standard delay
     setTimeout(() => {
       isNavigating = false;
+      console.log("🔓 Navigation unlocked efter normal tilbagegang");
     }, 300);
   }
 }
 
-// Opdater karrussel position og fokus (symmetrisk layout)
+// ===== KARRUSEL POSITIONS BEREGNING OG OPDATERING =====
+// Denne funktion beregner præcist hvor hvert kort skal placeres for at opnå perfekt centrering og smooth visual flow
 function updateCarouselPosition() {
+  console.log(`🎯 Opdaterer karrusel position til index: ${currentCarouselIndex}`);
+  
+  // ===== DOM ELEMENT REFERENCER =====
   const carousel = document.querySelector("#game-carousel");
   const cards = document.querySelectorAll("#game-carousel .game-card");
+  
+  if (!carousel) {
+    console.error("❌ Karrusel container ikke fundet");
+    return;
+  }
 
-  // Præcise målinger for symmetrisk layout
-  const cardWidth = 180; // kort bredde (normal størrelse)
-  const cardGap = 24; // 1.5rem gap mellem kort
-  const totalCardWidth = cardWidth + cardGap;
+  // ===== PRÆCISE MÅLINGER TIL SYMMETRISK LAYOUT =====
+  // Disse værdier skal matche CSS styling for korrekt positionering
+  const cardWidth = 150;          // Standard kort bredde (normal størrelse)
+  const centerCardWidth = 200;    // Centreret kort bredde (skaleret op i CSS)
+  const cardGap = 24;             // 1.5rem gap mellem kort fra CSS
+  const totalCardWidth = cardWidth + cardGap; // Total plads per kort inkl. gap = 174px
 
+  // ===== CONTAINER MÅLINGER =====
   const containerWidth = carousel.parentElement.offsetWidth;
+  console.log(`📐 Container bredde: ${containerWidth}px, kort plads: ${totalCardWidth}px`);
 
-  // Perfekt centrering for symmetrisk visning
-  const centerPosition = containerWidth / 2 - cardWidth / 2;
-  let offset = centerPosition - currentCarouselIndex * totalCardWidth;
+  // ===== PERFEKT CENTRERING MATEMATIK =====
+  // TRIN 1: Find container centrum position (f.eks. 800px / 2 = 400px)
+  const containerCenter = containerWidth / 2;
+  
+  // TRIN 2: Træk halvdelen af det aktive korts bredde fra centrum
+  // Dette giver os start-positionen for at centrere det aktive kort
+  // F.eks.: 400px - (200px / 2) = 300px fra venstre kant
+  const centerPosition = containerCenter - (centerCardWidth / 2);
+  
+  // TRIN 3: Beregn total forskydning baseret på aktuelt index
+  // currentCarouselIndex * totalCardWidth = afstand til det ønskede kort
+  // F.eks. index 5: 5 × 174px = 870px forskydning
+  const indexOffset = currentCarouselIndex * totalCardWidth;
+  
+  // TRIN 4: Samlet offset = centrering minus kort-position
+  // F.eks.: 300px - 870px = -570px (move left for at vise kort #5 i center)
+  let offset = centerPosition - indexOffset;
 
+  console.log(`🧮 Centrering matematik: ${containerCenter}px - ${centerCardWidth/2}px - ${indexOffset}px = ${offset}px`);
+
+  // ===== ANVEND CSS TRANSFORMATION =====
+  // translateX() flytter hele carousel container horisontalt
   carousel.style.transform = `translateX(${offset}px)`;
+  
+  console.log(`✅ CSS Transform anvendt: translateX(${offset}px)`);
 
-  // Opdater fokus classes for infinite carousel
+  // ===== OPDATER VISUELLE FOKUS STATES =====
+  // Fjern alle eksisterende fokus classes først
+  cards.forEach(card => card.classList.remove("center", "adjacent"));
+  
+  // ===== INFINITE SCROLL LOGIK FOR VISUAL STATES =====
   cards.forEach((card, index) => {
-    card.classList.remove("center", "adjacent");
-
-    // Find hvilket kort vi faktisk fokuserer på (modulo operation for infinite)
-    const actualIndex = currentCarouselIndex % carouselGames.length;
-    const cardIndex = index % carouselGames.length;
-
-    if (cardIndex === actualIndex) {
+    // VIGTIG: Find hvilket kort vi faktisk fokuserer på ved hjælp af modulo operation
+    // Da vi bruger triple array [kopi1, original, kopi2], skal vi mappe tilbage til original indices
+    const actualFocusIndex = currentCarouselIndex % carouselGames.length; // F.eks. index 15 → 5
+    const cardOriginalIndex = index % carouselGames.length;                // F.eks. card 25 → 5
+    
+    // ===== CENTER KORT STYLING =====
+    // Det aktive kort får "center" class (større størrelse og fokus)
+    if (cardOriginalIndex === actualFocusIndex) {
       card.classList.add("center");
-    } else if (
-      cardIndex ===
-        (actualIndex - 1 + carouselGames.length) % carouselGames.length ||
-      cardIndex === (actualIndex + 1) % carouselGames.length
-    ) {
-      card.classList.add("adjacent");
+      console.log(`🎯 CENTER kort: index ${index} (original: ${cardOriginalIndex})`);
+    } 
+    // ===== ADJACENT KORT STYLING =====
+    // Kortene ved siden af det aktive kort får "adjacent" class (mindre fade)
+    else {
+      // Beregn forrige og næste kort indices med wrap-around
+      const prevIndex = (actualFocusIndex - 1 + carouselGames.length) % carouselGames.length;
+      const nextIndex = (actualFocusIndex + 1) % carouselGames.length;
+      
+      if (cardOriginalIndex === prevIndex || cardOriginalIndex === nextIndex) {
+        card.classList.add("adjacent");
+        console.log(`🔗 ADJACENT kort: index ${index} (original: ${cardOriginalIndex})`);
+      }
     }
+    // ===== BACKGROUND KORT =====
+    // Alle andre kort får standard styling (ingen ekstra classes)
+    // Dette skaber smooth fade effect mod kanterne
   });
+  
+  console.log(`🎨 Visuelle states opdateret - fokus på kort ${currentCarouselIndex % carouselGames.length}`);
 }
 
-// Tilføj swipe events
+// ===== TOUCH/SWIPE INTERACTION SYSTEM =====
+// Denne funktion sætter up event listeners for både mobile touch og desktop mouse interactions
 function addSwipeEvents() {
+  console.log("🔧 Initialiserer touch/swipe event system");
+  
+  // ===== DOM ELEMENT REFERENCER =====
   const carousel = document.querySelector("#game-carousel");
   const container = document.querySelector(".carousel-container");
+  
+  if (!container || !carousel) {
+    console.error("❌ Carousel elementer ikke fundet for swipe events");
+    return;
+  }
 
-  // Touch events
+  // ===== MOBILE TOUCH EVENTS =====
+  // Passive: false tillader preventDefault() for smooth scroll control
   container.addEventListener("touchstart", handleTouchStart, {
-    passive: false,
+    passive: false, // VIGTIG: Tillader preventDefault() i touchmove
   });
-  container.addEventListener("touchmove", handleTouchMove, { passive: false });
+  container.addEventListener("touchmove", handleTouchMove, { 
+    passive: false // VIGTIG: Forhindrer browser scroll under swipe
+  });
   container.addEventListener("touchend", handleTouchEnd);
 
-  // Mouse events for desktop
+  // ===== DESKTOP MOUSE EVENTS =====
+  // Mouse drag funktionalitet for desktop browsere
   container.addEventListener("mousedown", handleMouseStart);
   container.addEventListener("mousemove", handleMouseMove);
   container.addEventListener("mouseup", handleMouseEnd);
-  container.addEventListener("mouseleave", handleMouseEnd);
+  container.addEventListener("mouseleave", handleMouseEnd); // Cleanup hvis cursor forlader område
+  
+  console.log("✅ Touch/swipe events tilføjet til carousel container");
 }
 
+// ===== TOUCH START HANDLER =====
+// Initialiserer touch interaction og gemmer start position
 function handleTouchStart(e) {
-  startX = e.touches[0].clientX;
-  isDragging = true;
+  // ===== GEM START POSITION =====
+  startX = e.touches[0].clientX; // Horisontal position hvor touch begyndte
+  isDragging = true;             // Flag der indikerer aktiv touch session
+  
+  // ===== VISUEL FEEDBACK =====
+  // Tilføj dragging class for CSS styling under drag (f.eks. mindre transition)
   document.querySelector("#game-carousel").classList.add("dragging");
+  
+  console.log(`👆 Touch start på position: ${startX}px`);
 }
 
+// ===== TOUCH MOVE HANDLER =====
+// Håndterer kontinuerlig touch bevægelse og giver live visual feedback
 function handleTouchMove(e) {
-  if (!isDragging) return;
+  // ===== GUARD CLAUSE =====
+  if (!isDragging) return; // Ignorer hvis ingen aktiv touch session
+  
+  // ===== FORHINDRE BROWSER SCROLL =====
+  // KRITISK: Forhindrer browser i at scrolle siden under horizontal swipe
   e.preventDefault();
-  currentX = e.touches[0].clientX;
+  
+  // ===== OPDATER AKTUEL POSITION =====
+  currentX = e.touches[0].clientX; // Nuværende horisontal position
 
-  // Begræns swipe feedback til maksimalt ét kort
+  // ===== BEREGN DRAG DISTANCE =====
+  const diffX = startX - currentX; // Positiv = swipe left, negativ = swipe right
+  
+  console.log(`👆 Touch move: ${currentX}px (diff: ${diffX}px)`);
+
+  // ===== ANVEND LIVE VISUAL FEEDBACK =====
+  // Samme beregninger som updateCarouselPosition for konsistens
   const carousel = document.querySelector("#game-carousel");
-  const diffX = startX - currentX;
-
-  // Samme centrering som updateCarouselPosition
-  const cardWidth = 180;
+  const cardWidth = 150;
+  const centerCardWidth = 200;
   const cardGap = 24;
-  const totalCardWidth = cardWidth + cardGap;
+  const totalCardWidth = cardWidth + cardGap; // = 174px per kort
   const containerWidth = carousel.parentElement.offsetWidth;
-  const centerPosition = containerWidth / 2 - cardWidth / 2;
+  const centerPosition = containerWidth / 2 - centerCardWidth / 2;
 
+  // Beregn base position (hvor carousel normalt ville være)
   let baseOffset = centerPosition - currentCarouselIndex * totalCardWidth;
 
-  // Begræns drag til maksimalt 80% af et kort i hver retning
-  const maxDrag = totalCardWidth * 0.8;
-  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
-
+  // ===== BEGRÆNS DRAG FEEDBACK =====
+  // Begræns visuelt feedback til maksimalt 80% af ét kort for at forhindre over-scroll
+  const maxDrag = totalCardWidth * 0.8; // = ~139px maksimum
+  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3)); // 30% responsivitet
+  
+  // ===== ANVEND LIVE TRANSFORMATION =====
   carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
 }
 
+// ===== TOUCH END HANDLER =====
+// Afgør om swipe var tilstrækkelig til at skifte kort og udfører navigation
 function handleTouchEnd(e) {
-  if (!isDragging) return;
+  // ===== GUARD CLAUSE =====
+  if (!isDragging) return; // Ignorer hvis ingen aktiv touch session
+  
+  // ===== CLEANUP DRAGGING STATE =====
   isDragging = false;
-
+  
   const carousel = document.querySelector("#game-carousel");
-  carousel.classList.remove("dragging");
+  carousel.classList.remove("dragging"); // Fjern dragging styling
+  
+  // ===== EVALUÉR SWIPE DISTANCE =====
+  const diffX = startX - currentX;     // Total swipe distance
+  const threshold = 50;                // Minimum distance for kort navigation (pixels)
+  
+  console.log(`👆 Touch end: total swipe ${diffX}px (threshold: ${threshold}px)`);
 
-  const diffX = startX - currentX;
-  const threshold = 50; // Øget threshold for mere præcis control
-
+  // ===== NAVIGATION DECISION =====
   // Kun tillad ét kort ad gangen - ingen multi-swipes
   if (Math.abs(diffX) > threshold && !isNavigating) {
     if (diffX > 0) {
-      // Swipe til venstre = næste kort (kun ét)
-      nextSlide();
+      // ===== SWIPE LEFT = NÆSTE KORT =====
+      console.log("⬅️ Swipe left detekteret - næste kort");
+      nextSlide(); // Navigation til højre i carousel
     } else {
-      // Swipe til højre = forrige kort (kun ét)
-      prevSlide();
+      // ===== SWIPE RIGHT = FORRIGE KORT =====
+      console.log("➡️ Swipe right detekteret - forrige kort");
+      prevSlide(); // Navigation til venstre i carousel
     }
   } else {
-    // Snap tilbage til current position hvis ikke nok swipe
-    updateCarouselPosition();
+    // ===== INSUFFICIENT SWIPE - SNAP TILBAGE =====
+    console.log("↩️ Utilstrækkelig swipe - snap tilbage til aktuel position");
+    updateCarouselPosition(); // Return til korrekt position uden navigation
   }
 
-  // Reset touch tracking
+  // ===== RESET TOUCH TRACKING =====
   startX = 0;
   currentX = 0;
 }
 
+// ===== MOUSE INTERACTION HANDLERS (DESKTOP EQUIVALENT) =====
+// Disse funktioner giver samme drag-funktionalitet som touch events for desktop browsere
+
+// ===== MOUSE START HANDLER =====
+// Initialiserer mouse drag interaction (desktop equivalent til touchstart)
 function handleMouseStart(e) {
-  startX = e.clientX;
-  isDragging = true;
+  // ===== GEM START POSITION =====
+  startX = e.clientX;     // Horisontal position hvor mouse drag begyndte
+  isDragging = true;      // Flag der indikerer aktiv drag session
+  
+  // ===== VISUEL FEEDBACK =====
   document.querySelector("#game-carousel").classList.add("dragging");
-  e.preventDefault();
+  
+  // ===== FORHINDRE STANDARD MOUSE BEHAVIOR =====
+  e.preventDefault(); // Forhindrer tekstselektion og andre standard mouse actions
+  
+  console.log(`🖱️ Mouse drag start på position: ${startX}px`);
 }
 
+// ===== MOUSE MOVE HANDLER =====
+// Håndterer kontinuerlig mouse bevægelse under drag (desktop equivalent til touchmove)
 function handleMouseMove(e) {
-  if (!isDragging) return;
-  currentX = e.clientX;
+  // ===== GUARD CLAUSE =====
+  if (!isDragging) return; // Ignorer hvis ingen aktiv drag session
+  
+  // ===== OPDATER AKTUEL POSITION =====
+  currentX = e.clientX; // Nuværende horisontal position
 
-  // Begræns mouse feedback samme som touch
+  // ===== BEREGN DRAG DISTANCE =====
+  const diffX = startX - currentX; // Positiv = drag left, negativ = drag right
+  
+  // ===== ANVEND LIVE VISUAL FEEDBACK =====
+  // Samme beregninger som touch handlers for konsistent opførsel
   const carousel = document.querySelector("#game-carousel");
-  const diffX = startX - currentX;
-
-  const cardWidth = 180;
-  const cardGap = 24;
-  const totalCardWidth = cardWidth + cardGap;
+  const cardWidth = 150;           // Standard kort bredde
+  const centerCardWidth = 200;     // Center kort bredde (skaleret i CSS)
+  const cardGap = 24;              // Gap mellem kort
+  const totalCardWidth = cardWidth + cardGap; // = 174px per kort
   const containerWidth = carousel.parentElement.offsetWidth;
-  const centerPosition = containerWidth / 2 - cardWidth / 2;
+  const centerPosition = containerWidth / 2 - centerCardWidth / 2;
 
+  // Beregn base position (hvor carousel normalt ville være)
   let baseOffset = centerPosition - currentCarouselIndex * totalCardWidth;
 
-  // Begræns drag til maksimalt 80% af et kort i hver retning
-  const maxDrag = totalCardWidth * 0.8;
-  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3));
+  // ===== BEGRÆNS DRAG FEEDBACK =====
+  // Begræns visuelt feedback til maksimalt 80% af ét kort
+  const maxDrag = totalCardWidth * 0.8; // = ~139px maksimum
+  let dragOffset = Math.max(-maxDrag, Math.min(maxDrag, diffX * -0.3)); // 30% responsivitet
 
+  // ===== ANVEND LIVE TRANSFORMATION =====
   carousel.style.transform = `translateX(${baseOffset + dragOffset}px)`;
 }
 
+// ===== MOUSE END HANDLER =====
+// Afgør om drag var tilstrækkelig til at skifte kort (desktop equivalent til touchend)
 function handleMouseEnd(e) {
-  if (!isDragging) return;
+  // ===== GUARD CLAUSE =====
+  if (!isDragging) return; // Ignorer hvis ingen aktiv drag session
+  
+  // ===== CLEANUP DRAGGING STATE =====
   isDragging = false;
 
   const carousel = document.querySelector("#game-carousel");
-  carousel.classList.remove("dragging");
+  carousel.classList.remove("dragging"); // Fjern dragging styling
 
-  const diffX = startX - currentX;
-  const threshold = 50; // Samme threshold som touch
+  // ===== EVALUÉR DRAG DISTANCE =====
+  const diffX = startX - currentX;     // Total drag distance
+  const threshold = 50;                // Minimum distance for kort navigation (samme som touch)
 
+  console.log(`🖱️ Mouse drag end: total distance ${diffX}px (threshold: ${threshold}px)`);
+
+  // ===== NAVIGATION DECISION =====
   // Kun tillad ét kort ad gangen - ingen multi-drags
   if (Math.abs(diffX) > threshold && !isNavigating) {
     if (diffX > 0) {
-      // Drag til venstre = næste kort (kun ét)
-      nextSlide();
+      // ===== DRAG LEFT = NÆSTE KORT =====
+      console.log("⬅️ Mouse drag left detekteret - næste kort");
+      nextSlide(); // Navigation til højre i carousel
     } else {
-      // Drag til højre = forrige kort (kun ét)
-      prevSlide();
+      // ===== DRAG RIGHT = FORRIGE KORT =====
+      console.log("➡️ Mouse drag right detekteret - forrige kort");
+      prevSlide(); // Navigation til venstre i carousel
     }
   } else {
-    // Snap tilbage til current position hvis ikke nok drag
-    updateCarouselPosition();
+    // ===== INSUFFICIENT DRAG - SNAP TILBAGE =====
+    console.log("↩️ Utilstrækkelig drag - snap tilbage til aktuel position");
+    updateCarouselPosition(); // Return til korrekt position uden navigation
   }
 
-  // Reset mouse tracking
+  // ===== RESET MOUSE TRACKING =====
+  startX = 0;
+  currentX = 0;
+  // ===== RESET MOUSE TRACKING =====
   startX = 0;
   currentX = 0;
 }
 
-// Tilføj click events til karrussel cards (infinite)
+// ===== KARRUSSEL CLICK EVENTS - CENTER DETECTION =====
+// Tilføj click events til karrussel cards med præcis center detection
 function addCarouselClickEvents() {
   const carouselCards = document.querySelectorAll("#game-carousel .game-card");
   carouselCards.forEach((card, index) => {
     card.addEventListener("click", function (e) {
       if (isDragging) return; // Ignorer click hvis vi swiper
 
-      if (index === currentCarouselIndex) {
-        // Hvis center kort klikkes, åbn modal
+      // ===== PRÆCIS CENTER DETECTION =====
+      // Tjek om dette kort har "center" class (den eneste korrekte måde)
+      if (card.classList.contains("center")) {
+        // Kun det visuelt centrerede kort åbner modal
         const originalIndex = parseInt(card.dataset.originalIndex);
         const game = carouselGames[originalIndex];
-        console.log(`🎬 Klik på karrussel: "${game.title}"`);
+        console.log(`🎬 CENTER kort klikket: "${game.title}" (kort index: ${index})`);
         showGameModal(game);
       } else {
-        // Hvis ikke-center kort klikkes, gå til det kort
+        // Hvis ikke-center kort klikkes, naviger til det kort
+        console.log(`🎯 Side kort klikket - navigerer til index: ${index}`);
         goToSlide(index);
       }
     });

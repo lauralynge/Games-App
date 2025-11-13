@@ -107,7 +107,7 @@ span {
 h1 {
   font-family: poppins-bold, sans-serif;
   font-size: 36px;
-  margin-top: 30px;
+margin-top: 30px;
   color: var(--text);
 }
 
@@ -317,8 +317,8 @@ p {
 }
 
 
-/* =====================
-   FILTERBAR (SØG/SORT/FILTER/ÅR-FILTER/RATING-FILTER/RYD-KNAP)
+/* ============================================================
+   FILTERBAR (SØG/SORT/FILTER/PLAYTIME/RATING-FILTER/RYD-KNAP)
    ===================== */
 .filterbar {
   display: flex;
@@ -763,7 +763,6 @@ p {
   transition: var(--transition);
   cursor: pointer;
   position: relative;
-
 }
 
 .game-card:hover {
@@ -1276,8 +1275,8 @@ dialog#game-dialog::backdrop {
   position: relative;
   overflow-x: hidden;
   overflow-y: visible;  
-  margin: 2rem 0;
-  padding: 4rem 0;
+  /*margin: 2rem 0;*/
+  padding: 7rem 0;
   max-width: 100vw;
 }
 
@@ -1300,8 +1299,9 @@ dialog#game-dialog::backdrop {
 }
 
 #game-carousel .game-card {
-  min-width: 180px;
-  max-width: 180px;
+  min-width: 150px;
+  max-width: 150px;
+  height: 300px;        /* Fast højde kun for karrussel-kort */
   flex-shrink: 0;
   background: var(--bg-card);
   border-radius: var(--radius);
@@ -1309,8 +1309,10 @@ dialog#game-dialog::backdrop {
   transition: all 0.5s ease;
   cursor: pointer;
   box-shadow: var(--shadow);
-  transform: scale(0.8);
+  transform: scale(1);  /* Normal størrelse som standard */
   position: relative;
+  display: flex;        /* Flexbox kun for karrussel-kort */
+  flex-direction: column;
 }
 
 #game-carousel .game-card::before {
@@ -1320,43 +1322,47 @@ dialog#game-dialog::backdrop {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(0, 0, 0, 0.3);  /* Mørk overlay på normale kort */
   z-index: 1;
   transition: opacity 0.5s ease;
 }
 
 #game-carousel .game-card.center {
-  transform: scale(1.2);
+  transform: scale(1.5);  /* Center kort er 20% større */
   z-index: 2;
-  min-width: 220px;
-  max-width: 220px;
+  min-width: 200px;        /* Matcher JavaScript centerCardWidth */
+  max-width: 200px;        /* Matcher JavaScript centerCardWidth */
 }
 
 #game-carousel .game-card.center::before {
-  opacity: 0;
+  opacity: 0;  /* Fjern overlay fra center kort */
 }
 
 #game-carousel .game-card.adjacent {
-  transform: scale(1);
+  transform: scale(1.2);  /* Adjacent kort i normal størrelse */
 }
 
 #game-carousel .game-card.adjacent::before {
-  background: rgba(0, 0, 0, 0.15);
+  background: rgba(0, 0, 0, 0.15);  /* Lidt lysere overlay for adjacent kort */
 }
 
 #game-carousel .game-card:hover {
-  transform: scale(1.1);
+  transform: scale(1.1);  /* Hover gør normale kort lidt større */
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
 }
 
 #game-carousel .game-card.center:hover {
-  transform: scale(1.25);
+  transform: scale(1.65);  /* Hover gør center kort endnu større */
+}
+
+#game-carousel .game-card:hover::before {
+  opacity: 0.1;  /* Reducer overlay på hover for bedre visibility */
 }
 
 #game-carousel .game-poster {
   width: 100%;
   height: 250px;
-  object-fit: cover;
+  object-fit: scale-down;
   transition: all 0.3s ease;
 }
 
